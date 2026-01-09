@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DayCell from "@/components/ledger/DayCell";
@@ -19,10 +21,17 @@ export default function CalendarView({
   ledger: LedgerState;
   onChange: (ledger: LedgerState) => void;
 }) {
-  const today = new Date();
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [mounted, setMounted] = useState(false);
+  const [currentYear, setCurrentYear] = useState(0);
+  const [currentMonth, setCurrentMonth] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const today = new Date();
+    setCurrentYear(today.getFullYear());
+    setCurrentMonth(today.getMonth());
+    setMounted(true);
+  }, []); // eslint-disable-line react-hooks/set-state-in-effect
 
   const days = getDaysInMonth(currentYear, currentMonth);
 
@@ -46,9 +55,28 @@ export default function CalendarView({
   };
 
   const handleToday = () => {
+    const today = new Date();
     setCurrentYear(today.getFullYear());
     setCurrentMonth(today.getMonth());
   };
+
+  if (!mounted) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              Loading...
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-96" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
