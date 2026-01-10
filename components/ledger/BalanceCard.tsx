@@ -14,25 +14,25 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
 
   const today = formatDate(new Date());
   const currentBalance = balance(ledger, today);
-  const isOwed = currentBalance < 0;
+  const businessOwes = currentBalance < 0;
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="py-8 text-center relative overflow-hidden">
         <div
           className={`absolute inset-0 bg-gradient-to-br ${
-            isOwed
-              ? "from-destructive/10 to-destructive/5"
-              : "from-primary/10 to-primary/5"
+            businessOwes
+              ? "from-red-500/10 to-red-500/5"
+              : "from-green-500/10 to-green-500/5"
           }`}
         />
         <div className="relative z-10 space-y-4">
           <div className="flex justify-center">
             <div
               className={`p-3 rounded-full ${
-                isOwed
-                  ? "bg-destructive/10 text-destructive"
-                  : "bg-primary/10 text-primary"
+                businessOwes
+                  ? "bg-red-500/10 text-red-600"
+                  : "bg-green-500/10 text-green-600"
               }`}
             >
               <Wallet className="w-8 h-8" />
@@ -44,14 +44,14 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
             </p>
             {mounted ? (
               <div className="flex items-center justify-center gap-2">
-                {isOwed ? (
-                  <ArrowDown className="w-6 h-6 text-destructive" />
+                {businessOwes ? (
+                  <ArrowDown className="w-6 h-6 text-red-600" />
                 ) : (
-                  <ArrowUp className="w-6 h-6 text-primary" />
+                  <ArrowUp className="w-6 h-6 text-green-600" />
                 )}
                 <p
                   className={`text-4xl font-bold tracking-tight ${
-                    isOwed ? "text-destructive" : "text-primary"
+                    businessOwes ? "text-red-600" : "text-green-600"
                   }`}
                 >
                   KSh {Math.abs(currentBalance).toLocaleString()}
@@ -63,10 +63,10 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
             {mounted && (
               <p
                 className={`text-sm font-medium ${
-                  isOwed ? "text-destructive/80" : "text-primary/80"
+                  businessOwes ? "text-red-600/80" : "text-green-600/80"
                 }`}
               >
-                {isOwed ? "Amount Owed" : "Credit Available"}
+                {businessOwes ? "Business Owes You" : "You Owe Business"}
               </p>
             )}
           </div>

@@ -28,5 +28,5 @@ export function totalCharged(state: LedgerState, upToDate: string) {
 }
 
 export function balance(state: LedgerState, upToDate: string) {
-  return totalPaid(state) - totalService(state) - totalCharged(state, upToDate);
+  return totalPaid(state) + totalService(state) - totalCharged(state, upToDate);
 }

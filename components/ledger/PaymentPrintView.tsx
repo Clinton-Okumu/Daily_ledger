@@ -24,7 +24,7 @@ export default function PaymentPrintView({
   const printRef = useRef<HTMLDivElement>(null);
   const today = formatDate(new Date());
   const currentBalance = balance(ledger, today);
-  const isOwed = currentBalance < 0;
+  const businessOwes = currentBalance < 0;
   const paid = totalPaid(ledger);
   const service = totalService(ledger);
   const charged = totalCharged(ledger, today);
@@ -160,11 +160,11 @@ export default function PaymentPrintView({
               <div className="grid grid-cols-4 gap-4">
                 <div className="p-4 border rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Current Balance</p>
-                  <p className={`text-2xl font-bold ${isOwed ? "text-destructive" : "text-primary"}`}>
-                    {isOwed ? "-" : "+"}KSh {Math.abs(currentBalance).toLocaleString()}
+                  <p className={`text-2xl font-bold ${businessOwes ? "text-red-600" : "text-green-600"}`}>
+                    KSh {Math.abs(currentBalance).toLocaleString()}
                   </p>
-                  <p className={`text-xs mt-1 ${isOwed ? "text-destructive" : "text-primary"}`}>
-                    {isOwed ? "Amount Owed" : "Credit Available"}
+                  <p className={`text-xs mt-1 ${businessOwes ? "text-red-600" : "text-green-600"}`}>
+                    {businessOwes ? "Business Owes You" : "You Owe Business"}
                   </p>
                 </div>
 
@@ -272,7 +272,7 @@ export default function PaymentPrintView({
                 )}
               </div>
 
-              {isOwed && (
+              {businessOwes && (
                 <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                   <div className="flex items-center gap-2 text-destructive font-medium">
                     Outstanding Balance

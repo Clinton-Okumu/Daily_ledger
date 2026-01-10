@@ -123,14 +123,14 @@ export default function PaymentEditor({
               <SelectContent>
                 <SelectItem value="daily-charge">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>Daily Charge (Money In)</span>
+                    <Calendar className="w-4 h-4 text-green-600" />
+                    <span>Daily Charge (Business pays YOU)</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="service">
                   <div className="flex items-center gap-2">
-                    <Briefcase className="w-4 h-4" />
-                    <span>Service (Money Out)</span>
+                    <Briefcase className="w-4 h-4 text-orange-600" />
+                    <span>Service (YOU pay for service)</span>
                   </div>
                 </SelectItem>
               </SelectContent>
