@@ -1,7 +1,11 @@
 import { LedgerState } from "@/types/ledger";
 
 export function totalPaid(state: LedgerState) {
-  return state.payments.reduce((sum, p) => sum + p.amount, 0);
+  return state.payments.filter(p => p.type === "daily-charge").reduce((sum, p) => sum + p.amount, 0);
+}
+
+export function totalService(state: LedgerState) {
+  return state.payments.filter(p => p.type === "service").reduce((sum, p) => sum + p.amount, 0);
 }
 
 export function totalCharged(state: LedgerState, upToDate: string) {
@@ -24,5 +28,5 @@ export function totalCharged(state: LedgerState, upToDate: string) {
 }
 
 export function balance(state: LedgerState, upToDate: string) {
-  return totalPaid(state) - totalCharged(state, upToDate);
+  return totalPaid(state) - totalService(state) - totalCharged(state, upToDate);
 }

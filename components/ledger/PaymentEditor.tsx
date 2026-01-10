@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LedgerState } from "@/types/ledger";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LedgerState, PaymentType } from "@/types/ledger";
 import { formatDate } from "@/lib/date";
-import { getDayPayment } from "@/lib/status";
-import { Wallet2, Trash2, X, CheckCircle2 } from "lucide-react";
+import { Wallet2, Trash2, X, CheckCircle2, Calendar, Briefcase } from "lucide-react";
 
 interface PaymentEditorProps {
   date: Date;
@@ -22,9 +22,12 @@ export default function PaymentEditor({
   onCancel,
 }: PaymentEditorProps) {
   const dateStr = formatDate(date);
-  const existingPayment = getDayPayment(ledger, dateStr);
+  const existingPayment = ledger.payments.find((p) => p.date === dateStr);
   const [amount, setAmount] = useState<string>(
-    existingPayment > 0 ? String(existingPayment) : ""
+    existingPayment && existingPayment.amount > 0 ? String(existingPayment.amount) : ""
+  );
+  const [type, setType] = useState<PaymentType>(
+    existingPayment?.type || "daily-charge"
   );
 
   if (!date) return null;
@@ -47,6 +50,7 @@ export default function PaymentEditor({
         id: ledger.payments[existingPaymentIndex].id,
         date: dateStr,
         amount: numAmount,
+        type,
       };
     } else {
       updatedPayments = [
@@ -55,21 +59,24 @@ export default function PaymentEditor({
           id: crypto.randomUUID(),
           date: dateStr,
           amount: numAmount,
+          type,
         },
       ];
     }
 
     onSave({ ...ledger, payments: updatedPayments });
     setAmount("");
+    setType("daily-charge");
   };
 
   const handleDelete = () => {
     const updatedPayments = ledger.payments.filter((p) => p.date !== dateStr);
     onSave({ ...ledger, payments: updatedPayments });
     setAmount("");
+    setType("daily-charge");
   };
 
-  const hasPayment = getDayPayment(ledger, dateStr) > 0;
+  const hasPayment = existingPayment && existingPayment.amount > 0;
 
   return (
     <div
@@ -105,6 +112,30 @@ export default function PaymentEditor({
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="type" className="text-base font-medium">
+              Payment Type
+            </Label>
+            <Select value={type} onValueChange={(value) => setType(value as PaymentType)}>
+              <SelectTrigger id="type" className="h-12">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily-charge">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Daily Charge (Money In)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="service">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4" />
+                    <span>Service (Money Out)</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-base font-medium">
               Amount (KSh)

@@ -29,7 +29,7 @@ export default function Page() {
             <CalendarView ledger={ledger} onChange={setLedger} />
           </div>
           <SummaryCard ledger={ledger} />
-          <DataActions onLedgerChange={setLedger} />
+          <DataActions onLedgerChange={setLedger} ledger={ledger} />
         </div>
       </div>
     </main>
