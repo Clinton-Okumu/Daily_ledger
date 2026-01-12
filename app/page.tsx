@@ -19,9 +19,9 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="mx-auto max-w-3xl p-6 space-y-8 py-10">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 space-y-6 sm:space-y-8 py-6 sm:py-10">
         <LedgerHeader />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           <div className="md:col-span-2">
             <BalanceCard ledger={ledger} />
           </div>

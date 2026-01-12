@@ -20,61 +20,61 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
+        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {mounted ? (
           <>
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Calendar className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Charged</p>
-              <p className="text-lg font-bold">KSh {charged.toLocaleString()}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Charged</p>
+              <p className="text-sm sm:text-lg font-bold">KSh {charged.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <Wallet2 className="w-5 h-5 text-green-500" />
+        <div className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg">
+              <Wallet2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Paid (In)</p>
-              <p className="text-lg font-bold">KSh {paid.toLocaleString()}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Paid</p>
+              <p className="text-sm sm:text-lg font-bold">KSh {paid.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Briefcase className="w-5 h-5 text-orange-500" />
+        <div className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg">
+              <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Service (Out)</p>
-              <p className="text-lg font-bold">KSh {service.toLocaleString()}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Service</p>
+              <p className="text-sm sm:text-lg font-bold">KSh {service.toLocaleString()}</p>
             </div>
           </div>
         </div>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-500" />
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Daily Charge</p>
-                  <p className="text-lg font-bold">KSh {ledger.dailyCharge.toLocaleString()}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Daily Charge</p>
+                  <p className="text-sm sm:text-lg font-bold">KSh {ledger.dailyCharge.toLocaleString()}</p>
                 </div>
               </div>
             </div>
           </>
         ) : (
-          <div className="text-center text-muted-foreground py-4">Loading...</div>
+          <div className="text-center text-muted-foreground py-4 text-sm">Loading...</div>
         )}
       </CardContent>
     </Card>

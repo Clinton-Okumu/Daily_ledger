@@ -18,7 +18,7 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="py-8 text-center relative overflow-hidden">
+      <CardContent className="py-6 sm:py-8 text-center relative overflow-hidden">
         <div
           className={`absolute inset-0 bg-gradient-to-br ${
             businessOwes
@@ -26,31 +26,31 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
               : "from-green-500/10 to-green-500/5"
           }`}
         />
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 space-y-3 sm:space-y-4">
           <div className="flex justify-center">
             <div
-              className={`p-3 rounded-full ${
+              className={`p-2.5 sm:p-3 rounded-full ${
                 businessOwes
                   ? "bg-red-500/10 text-red-600"
                   : "bg-green-500/10 text-green-600"
               }`}
             >
-              <Wallet className="w-8 h-8" />
+              <Wallet className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
               Current Balance
             </p>
             {mounted ? (
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                 {businessOwes ? (
-                  <ArrowDown className="w-6 h-6 text-red-600" />
+                  <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                 ) : (
-                  <ArrowUp className="w-6 h-6 text-green-600" />
+                  <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 )}
                 <p
-                  className={`text-4xl font-bold tracking-tight ${
+                  className={`text-2xl sm:text-4xl font-bold tracking-tight ${
                     businessOwes ? "text-red-600" : "text-green-600"
                   }`}
                 >
@@ -58,11 +58,11 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
                 </p>
               </div>
             ) : (
-              <p className="text-4xl font-bold text-muted-foreground">...</p>
+              <p className="text-2xl sm:text-4xl font-bold text-muted-foreground">...</p>
             )}
             {mounted && (
               <p
-                className={`text-sm font-medium ${
+                className={`text-xs sm:text-sm font-medium ${
                   businessOwes ? "text-red-600/80" : "text-green-600/80"
                 }`}
               >
@@ -70,9 +70,10 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
               </p>
             )}
           </div>
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Stored locally in your browser</span>
+          <div className="flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">Stored locally in your browser</span>
+            <span className="sm:hidden">Local storage</span>
           </div>
         </div>
       </CardContent>
