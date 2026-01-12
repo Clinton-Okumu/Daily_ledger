@@ -66,7 +66,7 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
                   businessOwes ? "text-red-600/80" : "text-green-600/80"
                 }`}
               >
-                {businessOwes ? "Business Owes You" : "You Owe Business"}
+                 {businessOwes ? "You Owe Business" : "Business Owes You"}
               </p>
             )}
           </div>

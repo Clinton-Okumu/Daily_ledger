@@ -164,7 +164,7 @@ export default function PaymentPrintView({
                     KSh {Math.abs(currentBalance).toLocaleString()}
                   </p>
                   <p className={`text-xs mt-1 ${businessOwes ? "text-red-600" : "text-green-600"}`}>
-                    {businessOwes ? "Business Owes You" : "You Owe Business"}
+                    {businessOwes ? "You Owe Business" : "Business Owes You"}
                   </p>
                 </div>
 
