@@ -351,7 +351,7 @@ export default function PaymentPrintView({
                 )}
               </div>
 
-              {businessOwes && (
+              {youOweBusiness && (
                 <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                   <div className="flex items-center gap-2 text-destructive font-medium">
                     Outstanding Balance
