@@ -1,4 +1,5 @@
 import { LedgerState } from "@/types/ledger";
+import { formatDate } from "@/lib/date";
 
 export function totalPaid(state: LedgerState) {
   return state.payments.filter(p => p.type === "daily-charge").reduce((sum, p) => sum + p.amount, 0);
@@ -12,21 +13,47 @@ export function totalCharged(state: LedgerState, upToDate: string) {
   const start = new Date(state.payments[0]?.date ?? upToDate);
   const end = new Date(upToDate);
 
-  const totalDays =
-    Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
-  let chargeableDays = 0;
-  for (let i = 0; i < totalDays; i++) {
-    const date = new Date(start);
-    date.setDate(start.getDate() + i);
-    if (date.getDay() !== 0) {
-      chargeableDays++;
-    }
-  }
-
-  return chargeableDays * state.dailyCharge;
+  return totalChargedInRange(state, start, end);
 }
 
 export function balance(state: LedgerState, upToDate: string) {
   return totalPaid(state) + totalService(state) - totalCharged(state, upToDate);
+}
+
+function countChargeableDays(startDate: Date, endDate: Date) {
+  let chargeableDays = 0;
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    if (current.getDay() !== 0) {
+      chargeableDays++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return chargeableDays;
+}
+
+export function totalChargedInRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+) {
+  const chargeableDays = countChargeableDays(startDate, endDate);
+  return chargeableDays * state.dailyCharge;
+}
+
+export function totalPaidInRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+) {
+  const startStr = formatDate(startDate);
+  const endStr = formatDate(endDate);
+  return state.payments
+    .filter(
+      (payment) =>
+        payment.type === "daily-charge" &&
+        payment.date >= startStr &&
+        payment.date <= endStr
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
 }

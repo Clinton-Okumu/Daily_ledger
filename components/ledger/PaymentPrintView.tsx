@@ -2,11 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { LedgerState } from "@/types/ledger";
 import { balance, totalPaid, totalService, totalCharged } from "@/lib/ledger";
 import { formatDate } from "@/lib/date";
-import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase } from "lucide-react";
+import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase, AlertTriangle } from "lucide-react";
 import { getDayStatus } from "@/lib/status";
 import { useRef, useEffect } from "react";
 
@@ -24,12 +23,35 @@ export default function PaymentPrintView({
   const printRef = useRef<HTMLDivElement>(null);
   const today = formatDate(new Date());
   const currentBalance = balance(ledger, today);
-  const businessOwes = currentBalance < 0;
+  const youOweBusiness = currentBalance > 0;
   const paid = totalPaid(ledger);
   const service = totalService(ledger);
   const charged = totalCharged(ledger, today);
+  const amountDue = Math.max(0, charged - paid);
 
   const sortedPayments = [...ledger.payments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const periodStartDate = new Date(sortedPayments[sortedPayments.length - 1]?.date ?? today);
+  const periodEndDate = new Date(today);
+  const periodLabel = `${periodStartDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })} - ${periodEndDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+
+  const groupedPayments = sortedPayments.reduce((map, payment) => {
+    const label = new Date(payment.date).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+    const list = map.get(label) ?? [];
+    list.push(payment);
+    map.set(label, list);
+    return map;
+  }, new Map<string, typeof ledger.payments>());
 
   const handlePrint = () => {
     const printContent = document.getElementById("printable-content");
@@ -60,7 +82,7 @@ export default function PaymentPrintView({
             }
             .summary {
               display: grid;
-              grid-template-columns: repeat(3, 1fr);
+              grid-template-columns: repeat(2, 1fr);
               gap: 15px;
               margin-bottom: 30px;
             }
@@ -69,6 +91,36 @@ export default function PaymentPrintView({
               border-radius: 8px;
               padding: 15px;
               text-align: center;
+            }
+            .statement-meta {
+              text-align: center;
+              color: #666;
+              margin-bottom: 25px;
+            }
+            .section-title {
+              font-size: 18px;
+              font-weight: 600;
+              margin: 20px 0 10px;
+            }
+            .group-title {
+              font-size: 16px;
+              font-weight: 600;
+              margin: 18px 0 8px;
+              border-bottom: 1px solid #eee;
+              padding-bottom: 6px;
+            }
+            .group-subtotal {
+              text-align: right;
+              color: #666;
+              font-size: 12px;
+              margin-top: 6px;
+            }
+            .badge {
+              display: inline-block;
+              padding: 2px 6px;
+              border-radius: 999px;
+              border: 1px solid #ddd;
+              font-size: 11px;
             }
             .summary-label {
               font-size: 14px;
@@ -155,50 +207,45 @@ export default function PaymentPrintView({
                     year: "numeric",
                   })}
                 </p>
+                <div className="statement-meta">Statement period: {periodLabel}</div>
               </div>
 
-              <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Current Balance</p>
-                  <p className={`text-2xl font-bold ${businessOwes ? "text-red-600" : "text-green-600"}`}>
-                    KSh {Math.abs(currentBalance).toLocaleString()}
-                  </p>
-                  <p className={`text-xs mt-1 ${businessOwes ? "text-red-600" : "text-green-600"}`}>
-                    {businessOwes ? "You Owe Business" : "Business Owes You"}
+              <div className="summary">
+                <div className="summary-item">
+                  <p className="summary-label">Current Balance</p>
+                  <p className="summary-value">KSh {Math.abs(currentBalance).toLocaleString()}</p>
+                  <p className="text-xs mt-1">
+                    {youOweBusiness ? "You owe business" : "Business owes you"}
                   </p>
                 </div>
-
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Total Paid (In)</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    KSh {paid.toLocaleString()}
-                  </p>
+                <div className="summary-item">
+                  <p className="summary-label">Amount Due (Daily Charge)</p>
+                  <p className="summary-value">KSh {amountDue.toLocaleString()}</p>
                 </div>
-
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Total Service (Out)</p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    KSh {service.toLocaleString()}
-                  </p>
+                <div className="summary-item">
+                  <p className="summary-label">Total Paid (In)</p>
+                  <p className="summary-value">KSh {paid.toLocaleString()}</p>
                 </div>
-
-                <div className="p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Total Charged</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    KSh {charged.toLocaleString()}
-                  </p>
+                <div className="summary-item">
+                  <p className="summary-label">Total Service (Out)</p>
+                  <p className="summary-value">KSh {service.toLocaleString()}</p>
+                </div>
+                <div className="summary-item">
+                  <p className="summary-label">Total Charged</p>
+                  <p className="summary-value">KSh {charged.toLocaleString()}</p>
                 </div>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="daily-charge">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">Daily Charge</h3>
-                  <Badge variant="outline">KSh {ledger.dailyCharge.toLocaleString()}/day</Badge>
+                  <span className="badge">KSh {ledger.dailyCharge.toLocaleString()}/day</span>
                 </div>
+                <p className="text-sm text-muted-foreground">Sundays are excluded from charges.</p>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <h3 className="section-title flex items-center gap-2">
                   <Wallet className="w-5 h-5" />
                   Payment History
                 </h3>
@@ -210,60 +257,92 @@ export default function PaymentPrintView({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {sortedPayments.map((payment) => {
-                      const status = getDayStatus(ledger, payment.date);
-                      const date = new Date(payment.date);
-                      const isService = payment.type === "service";
+                    {Array.from(groupedPayments.entries()).map(([label, payments]) => {
+                      const groupPaid = payments
+                        .filter((payment) => payment.type === "daily-charge")
+                        .reduce((sum, payment) => sum + payment.amount, 0);
+                      const groupService = payments
+                        .filter((payment) => payment.type === "service")
+                        .reduce((sum, payment) => sum + payment.amount, 0);
 
                       return (
-                        <div
-                          key={payment.id}
-                          className="p-4 border rounded-lg flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            {isService ? (
-                              <div className="p-1.5 bg-orange-100 rounded-full">
-                                <Briefcase className="w-5 h-5 text-orange-600" />
-                              </div>
-                            ) : status === "paid" && (
-                              <div className="p-1.5 bg-green-100 rounded-full">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                              </div>
-                            )}
-                            {!isService && status === "partial" && (
-                              <div className="p-1.5 bg-yellow-100 rounded-full">
-                                <Clock className="w-5 h-5 text-yellow-600" />
-                              </div>
-                            )}
-                            {!isService && status === "none" && (
-                              <div className="p-1.5 bg-blue-100 rounded-full">
-                                <Wallet className="w-5 h-5 text-blue-600" />
-                              </div>
-                            )}
+                        <div key={label}>
+                          <div className="group-title">{label}</div>
+                          <div className="space-y-3">
+                            {payments.map((payment) => {
+                              const status = getDayStatus(ledger, payment.date);
+                              const date = new Date(payment.date);
+                              const isService = payment.type === "service";
 
-                            <div>
-                              <p className="font-medium">
-                                {date.toLocaleDateString("en-US", {
-                                  weekday: "short",
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {date.toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                })}
-                              </p>
-                            </div>
+                              return (
+                                <div
+                                  key={payment.id}
+                                  className="payment-item"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {isService ? (
+                                      <div className="p-1.5 bg-orange-100 rounded-full">
+                                        <Briefcase className="w-5 h-5 text-orange-600" />
+                                      </div>
+                                    ) : status === "paid" && (
+                                      <div className="p-1.5 bg-green-100 rounded-full">
+                                        <CheckCircle className="w-5 h-5 text-green-600" />
+                                      </div>
+                                    )}
+                                    {!isService && status === "partial" && (
+                                      <div className="p-1.5 bg-yellow-100 rounded-full">
+                                        <Clock className="w-5 h-5 text-yellow-600" />
+                                      </div>
+                                    )}
+                                    {!isService && status === "overdue" && (
+                                      <div className="p-1.5 bg-red-100 rounded-full">
+                                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                                      </div>
+                                    )}
+                                    {!isService && status === "none" && (
+                                      <div className="p-1.5 bg-blue-100 rounded-full">
+                                        <Wallet className="w-5 h-5 text-blue-600" />
+                                      </div>
+                                    )}
+
+                                    <div>
+                                      <p className="font-medium">
+                                        {date.toLocaleDateString("en-US", {
+                                          weekday: "short",
+                                          month: "short",
+                                          day: "numeric",
+                                        })}
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {date.toLocaleDateString("en-US", {
+                                          year: "numeric",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="text-right">
+                                    <p className={`font-bold text-lg ${isService ? "text-orange-600" : "text-green-600"}`}>
+                                      {isService ? "-" : "+"}KSh {payment.amount.toLocaleString()}
+                                    </p>
+                                    <span className="badge">
+                                      {isService
+                                        ? "Service Payment"
+                                        : status === "paid"
+                                          ? "Paid in Full"
+                                          : status === "partial"
+                                            ? "Partial"
+                                            : status === "overdue"
+                                              ? "Overdue"
+                                              : "Recorded"}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-
-                          <div className="text-right">
-                            <p className={`font-bold text-lg ${isService ? "text-orange-600" : "text-green-600"}`}>
-                              {isService ? "-" : "+"}KSh {payment.amount.toLocaleString()}
-                            </p>
-                            <Badge variant={isService ? "destructive" : status === "paid" ? "default" : "secondary"} className="text-xs">
-                              {isService ? "Service Payment" : status === "paid" ? "Paid in Full" : status === "partial" ? "Partial" : "Recorded"}
-                            </Badge>
+                          <div className="group-subtotal">
+                            In: KSh {groupPaid.toLocaleString()} • Out: KSh {groupService.toLocaleString()}
                           </div>
                         </div>
                       );

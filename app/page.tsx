@@ -9,6 +9,7 @@ import BalanceCard from "@/components/ledger/BalanceCard";
 import CalendarView from "@/components/ledger/CalendarView";
 import SummaryCard from "@/components/ledger/SummaryCard";
 import DataActions from "@/components/ledger/DataActions";
+import MonthlyTotalsCard from "@/components/ledger/MonthlyTotalsCard";
 
 export default function Page() {
   const [ledger, setLedger] = useState<LedgerState>(() => loadLedger());
@@ -29,10 +30,10 @@ export default function Page() {
             <CalendarView ledger={ledger} onChange={setLedger} />
           </div>
           <SummaryCard ledger={ledger} />
+          <MonthlyTotalsCard ledger={ledger} />
           <DataActions onLedgerChange={setLedger} ledger={ledger} />
         </div>
       </div>
     </main>
   );
 }
-

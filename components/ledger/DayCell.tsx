@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate, isToday } from "@/lib/date";
 import { getDayStatus, DayStatus, getDayPayment } from "@/lib/status";
 import { LedgerState } from "@/types/ledger";
-import { CheckCircle2, Clock, Coffee } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Coffee } from "lucide-react";
 
 export default function DayCell({
   date,
@@ -47,6 +47,13 @@ export default function DayCell({
         return (
           <Badge variant="outline" className="gap-0.5 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
             <span className="hidden md:inline">Unpaid</span>
+          </Badge>
+        );
+      case "overdue":
+        return (
+          <Badge className="bg-red-500 hover:bg-red-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
+            <AlertTriangle className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
+            <span className="hidden md:inline">Overdue</span>
           </Badge>
         );
       default:
