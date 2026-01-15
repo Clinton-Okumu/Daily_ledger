@@ -2,9 +2,20 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, isToday } from "@/lib/date";
-import { getDayStatus, DayStatus, getDayPayment } from "@/lib/status";
+import {
+  getDayStatus,
+  DayStatus,
+  getDayPayment,
+  getDayPaymentType,
+} from "@/lib/status";
 import { LedgerState } from "@/types/ledger";
-import { AlertTriangle, CheckCircle2, Clock, Coffee } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Coffee,
+  Briefcase,
+} from "lucide-react";
 
 export default function DayCell({
   date,
@@ -24,8 +35,10 @@ export default function DayCell({
   const dateStr = formatDate(date);
   const status = getDayStatus(ledger, dateStr);
   const paymentAmount = getDayPayment(ledger, dateStr);
+  const paymentType = getDayPaymentType(ledger, dateStr);
   const today = isToday(date);
   const isSunday = date.getDay() === 0;
+  const isService = paymentType === "service";
 
   const getStatusBadge = (status: DayStatus) => {
     switch (status) {
@@ -80,9 +93,16 @@ export default function DayCell({
             <span className="hidden md:inline">Off</span>
           </Badge>
         ) : mounted ? (
-          <div className="text-[9px] sm:text-[10px] md:text-xs">
-            {getStatusBadge(status)}
-          </div>
+          isService ? (
+            <Badge className="bg-orange-500 hover:bg-orange-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
+              <Briefcase className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
+              <span className="hidden md:inline">Service</span>
+            </Badge>
+          ) : (
+            <div className="text-[9px] sm:text-[10px] md:text-xs">
+              {getStatusBadge(status)}
+            </div>
+          )
         ) : null}
       </div>
       {mounted && paymentAmount > 0 && (

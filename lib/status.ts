@@ -1,4 +1,4 @@
-import { LedgerState } from "@/types/ledger";
+import { LedgerState, PaymentType } from "@/types/ledger";
 import { formatDate } from "@/lib/date";
 
 export type DayStatus = "paid" | "partial" | "unpaid" | "overdue" | "none";
@@ -24,4 +24,11 @@ export function getDayStatus(
 
 export function getDayPayment(ledger: LedgerState, date: string) {
   return ledger.payments.find((p) => p.date === date)?.amount ?? 0;
+}
+
+export function getDayPaymentType(
+  ledger: LedgerState,
+  date: string
+): PaymentType | null {
+  return ledger.payments.find((p) => p.date === date)?.type ?? null;
 }
