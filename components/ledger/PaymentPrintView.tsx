@@ -27,7 +27,7 @@ export default function PaymentPrintView({
   const paid = totalPaid(ledger);
   const service = totalService(ledger);
   const charged = totalCharged(ledger, today);
-  const amountDue = Math.max(0, charged - paid);
+  const amountDue = Math.max(0, charged - paid - service);
 
   const sortedPayments = [...ledger.payments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const periodStartDate = new Date(sortedPayments[sortedPayments.length - 1]?.date ?? today);
@@ -219,7 +219,7 @@ export default function PaymentPrintView({
                   </p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Amount Due (Daily Charge)</p>
+                  <p className="summary-label">Amount Due (after service)</p>
                   <p className="summary-value">KSh {amountDue.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">

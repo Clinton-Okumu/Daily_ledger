@@ -57,3 +57,20 @@ export function totalPaidInRange(
     )
     .reduce((sum, payment) => sum + payment.amount, 0);
 }
+
+export function totalServiceInRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+) {
+  const startStr = formatDate(startDate);
+  const endStr = formatDate(endDate);
+  return state.payments
+    .filter(
+      (payment) =>
+        payment.type === "service" &&
+        payment.date >= startStr &&
+        payment.date <= endStr
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
+}
