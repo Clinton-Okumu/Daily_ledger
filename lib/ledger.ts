@@ -20,11 +20,20 @@ export function balance(state: LedgerState, upToDate: string) {
   return totalPaid(state) + totalService(state) - totalCharged(state, upToDate);
 }
 
-function countChargeableDays(startDate: Date, endDate: Date) {
+function hasNonChargeOverride(state: LedgerState, date: Date) {
+  const dateStr = formatDate(date);
+  return state.payments.some(
+    (payment) =>
+      payment.date === dateStr &&
+      (payment.type === "service-day" || payment.type === "emergency")
+  );
+}
+
+function countChargeableDays(state: LedgerState, startDate: Date, endDate: Date) {
   let chargeableDays = 0;
   const current = new Date(startDate);
   while (current <= endDate) {
-    if (current.getDay() !== 0) {
+    if (current.getDay() !== 0 && !hasNonChargeOverride(state, current)) {
       chargeableDays++;
     }
     current.setDate(current.getDate() + 1);
@@ -37,7 +46,7 @@ export function totalChargedInRange(
   startDate: Date,
   endDate: Date
 ) {
-  const chargeableDays = countChargeableDays(startDate, endDate);
+  const chargeableDays = countChargeableDays(state, startDate, endDate);
   return chargeableDays * state.dailyCharge;
 }
 

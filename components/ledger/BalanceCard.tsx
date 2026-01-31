@@ -16,13 +16,15 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
   const currentBalance = balance(ledger, today);
   const youOweBusiness = currentBalance > 0;
   const businessOwesYou = currentBalance < 0;
+  const displayBalance = mounted ? currentBalance : 0;
+  const displayBusinessOwesYou = mounted ? businessOwesYou : false;
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="py-6 sm:py-8 text-center relative overflow-hidden">
         <div
           className={`absolute inset-0 bg-gradient-to-br ${
-            businessOwesYou
+            displayBusinessOwesYou
               ? "from-red-500/10 to-red-500/5"
               : "from-green-500/10 to-green-500/5"
           }`}
@@ -31,7 +33,7 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
           <div className="flex justify-center">
             <div
               className={`p-2.5 sm:p-3 rounded-full ${
-                businessOwesYou
+                displayBusinessOwesYou
                   ? "bg-red-500/10 text-red-600"
                   : "bg-green-500/10 text-green-600"
               }`}
@@ -45,17 +47,17 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
             </p>
             {mounted ? (
               <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-                {businessOwesYou ? (
+                {displayBusinessOwesYou ? (
                   <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                 ) : (
                   <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 )}
                 <p
                   className={`text-2xl sm:text-4xl font-bold tracking-tight ${
-                    businessOwesYou ? "text-red-600" : "text-green-600"
+                    displayBusinessOwesYou ? "text-red-600" : "text-green-600"
                   }`}
                 >
-                  KSh {currentBalance.toLocaleString()}
+                  KSh {displayBalance.toLocaleString()}
                 </p>
               </div>
             ) : (

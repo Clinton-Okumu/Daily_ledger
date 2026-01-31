@@ -6,7 +6,8 @@ import {
   getDayStatus,
   DayStatus,
   getDayPayment,
-  getDayPaymentType,
+  getDayPaymentTypes,
+  getDayPayments,
 } from "@/lib/status";
 import { LedgerState } from "@/types/ledger";
 import {
@@ -35,10 +36,14 @@ export default function DayCell({
   const dateStr = formatDate(date);
   const status = getDayStatus(ledger, dateStr);
   const paymentAmount = getDayPayment(ledger, dateStr);
-  const paymentType = getDayPaymentType(ledger, dateStr);
+  const paymentTypes = getDayPaymentTypes(ledger, dateStr);
+  const dayPayments = getDayPayments(ledger, dateStr);
   const today = isToday(date);
   const isSunday = date.getDay() === 0;
-  const isService = paymentType === "service";
+  const hasServicePayment = paymentTypes.includes("service");
+  const hasServiceDay = paymentTypes.includes("service-day");
+  const hasEmergencyDay = paymentTypes.includes("emergency");
+  const hasPaidDayOverride = hasServiceDay || hasEmergencyDay;
 
   const getStatusBadge = (status: DayStatus) => {
     switch (status) {
@@ -93,11 +98,32 @@ export default function DayCell({
             <span className="hidden md:inline">Off</span>
           </Badge>
         ) : mounted ? (
-          isService ? (
-            <Badge className="bg-orange-500 hover:bg-orange-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
-              <Briefcase className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
-              <span className="hidden md:inline">Service</span>
-            </Badge>
+          dayPayments.length > 0 ? (
+            <div className="flex flex-col items-end gap-0.5">
+              {hasServicePayment && (
+                <Badge className="bg-orange-500 hover:bg-orange-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
+                  <Briefcase className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
+                  <span className="hidden md:inline">Service</span>
+                </Badge>
+              )}
+              {hasServiceDay && (
+                <Badge className="bg-emerald-500 hover:bg-emerald-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
+                  <CheckCircle2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
+                  <span className="hidden md:inline">Service Day</span>
+                </Badge>
+              )}
+              {hasEmergencyDay && (
+                <Badge className="bg-amber-500 hover:bg-amber-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
+                  <AlertTriangle className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
+                  <span className="hidden md:inline">Emergency</span>
+                </Badge>
+              )}
+              {!hasPaidDayOverride && (
+                <div className="text-[9px] sm:text-[10px] md:text-xs">
+                  {getStatusBadge(status)}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="text-[9px] sm:text-[10px] md:text-xs">
               {getStatusBadge(status)}

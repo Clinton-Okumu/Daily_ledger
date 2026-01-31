@@ -12,11 +12,18 @@ import DataActions from "@/components/ledger/DataActions";
 import MonthlyTotalsCard from "@/components/ledger/MonthlyTotalsCard";
 
 export default function Page() {
-  const [ledger, setLedger] = useState<LedgerState>(() => loadLedger());
+  const [ledger, setLedger] = useState<LedgerState>({ dailyCharge: 300, payments: [] });
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setLedger(loadLedger());
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     saveLedger(ledger);
-  }, [ledger]);
+  }, [ledger, hydrated]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">

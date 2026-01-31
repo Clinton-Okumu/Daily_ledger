@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LedgerState, PaymentType } from "@/types/ledger";
 import { formatDate } from "@/lib/date";
-import { Wallet2, Trash2, X, CheckCircle2, Calendar, Briefcase } from "lucide-react";
+import { Wallet2, Trash2, X, CheckCircle2, Calendar, Briefcase, AlertTriangle } from "lucide-react";
 
 interface PaymentEditorProps {
   date: Date;
@@ -22,61 +22,86 @@ export default function PaymentEditor({
   onCancel,
 }: PaymentEditorProps) {
   const dateStr = formatDate(date);
-  const existingPayment = ledger.payments.find((p) => p.date === dateStr);
-  const [amount, setAmount] = useState<string>(
-    existingPayment && existingPayment.amount > 0 ? String(existingPayment.amount) : ""
-  );
+  const dayPayments = ledger.payments.filter((p) => p.date === dateStr);
+  const [amount, setAmount] = useState<string>("");
   const [type, setType] = useState<PaymentType>(
-    existingPayment?.type || "daily-charge"
+    "daily-charge"
   );
 
   if (!date) return null;
 
   const handleSave = () => {
     const dateStr = formatDate(date);
-    const numAmount = parseFloat(amount) || 0;
+    const isPaidDayType = type === "service-day" || type === "emergency";
+    const numAmount = isPaidDayType ? 0 : parseFloat(amount) || 0;
 
-    const existingPaymentIndex = ledger.payments.findIndex(
-      (p) => p.date === dateStr
-    );
+    if (!isPaidDayType && numAmount === 0) {
+      return;
+    }
 
-    let updatedPayments: typeof ledger.payments;
-
-    if (numAmount === 0) {
-      updatedPayments = ledger.payments.filter((p) => p.date !== dateStr);
-    } else if (existingPaymentIndex >= 0) {
-      updatedPayments = [...ledger.payments];
-      updatedPayments[existingPaymentIndex] = {
-        id: ledger.payments[existingPaymentIndex].id,
+    const updatedPayments = [
+      ...ledger.payments,
+      {
+        id: crypto.randomUUID(),
         date: dateStr,
         amount: numAmount,
         type,
-      };
-    } else {
-      updatedPayments = [
-        ...ledger.payments,
-        {
-          id: crypto.randomUUID(),
-          date: dateStr,
-          amount: numAmount,
-          type,
-        },
-      ];
-    }
+      },
+    ];
 
     onSave({ ...ledger, payments: updatedPayments });
     setAmount("");
     setType("daily-charge");
   };
 
-  const handleDelete = () => {
+  const handleDelete = (id: string) => {
+    const updatedPayments = ledger.payments.filter((p) => p.id !== id);
+    onSave({ ...ledger, payments: updatedPayments });
+    setAmount("");
+    setType("daily-charge");
+  };
+
+  const handleDeleteDay = () => {
     const updatedPayments = ledger.payments.filter((p) => p.date !== dateStr);
     onSave({ ...ledger, payments: updatedPayments });
     setAmount("");
     setType("daily-charge");
   };
 
-  const hasPayment = existingPayment && existingPayment.amount > 0;
+  const hasPayments = dayPayments.length > 0;
+  const isPaidDayType = type === "service-day" || type === "emergency";
+  const handleTypeChange = (value: string) => {
+    const nextType = value as PaymentType;
+    setType(nextType);
+    if (nextType === "service-day" || nextType === "emergency") {
+      setAmount("0");
+    } else if (amount === "0") {
+      setAmount("");
+    }
+  };
+
+  const formatTypeLabel = (paymentType: PaymentType) => {
+    switch (paymentType) {
+      case "daily-charge":
+        return "Daily Charge";
+      case "service":
+        return "Service";
+      case "service-day":
+        return "Service Day";
+      case "emergency":
+        return "Emergency Day";
+      default:
+        return "Payment";
+    }
+  };
+
+  const formatAmountLabel = (payment: { amount: number; type: PaymentType }) => {
+    if (payment.type === "service-day" || payment.type === "emergency") {
+      return "Paid day";
+    }
+    const sign = payment.type === "service" ? "-" : "+";
+    return `${sign}KSh ${payment.amount.toLocaleString()}`;
+  };
 
   return (
     <div
@@ -116,7 +141,7 @@ export default function PaymentEditor({
             <Label htmlFor="type" className="text-base font-medium">
               Payment Type
             </Label>
-            <Select value={type} onValueChange={(value) => setType(value as PaymentType)}>
+            <Select value={type} onValueChange={handleTypeChange}>
               <SelectTrigger id="type" className="h-12">
                 <SelectValue />
               </SelectTrigger>
@@ -131,6 +156,18 @@ export default function PaymentEditor({
                   <div className="flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-orange-600" />
                     <span>Service (YOU pay for service)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="service-day">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Service Day (Paid day)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="emergency">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span>Emergency Day (Paid day)</span>
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -148,6 +185,7 @@ export default function PaymentEditor({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 autoFocus
+                disabled={isPaidDayType}
                 className="text-lg h-12 pl-4 pr-12"
               />
               {amount && (
@@ -157,15 +195,47 @@ export default function PaymentEditor({
               )}
             </div>
           </div>
+          {dayPayments.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">
+                Entries for this day
+              </p>
+              <div className="space-y-2">
+                {dayPayments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex items-center justify-between rounded-lg border px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {formatTypeLabel(payment.type)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatAmountLabel(payment)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(payment.id)}
+                      className="h-8 w-8"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex gap-3">
             <Button onClick={handleSave} className="flex-1 gap-2 h-12">
               <CheckCircle2 className="w-5 h-5" />
               Save Payment
             </Button>
             <Button
-              onClick={handleDelete}
+              onClick={handleDeleteDay}
               variant="destructive"
-              disabled={!hasPayment}
+              disabled={!hasPayments}
               className="h-12 px-4"
             >
               <Trash2 className="w-5 h-5" />

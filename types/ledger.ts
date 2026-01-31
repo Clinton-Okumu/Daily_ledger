@@ -1,4 +1,4 @@
-export type PaymentType = "daily-charge" | "service";
+export type PaymentType = "daily-charge" | "service" | "service-day" | "emergency";
 
 export type Payment = {
   id: string;

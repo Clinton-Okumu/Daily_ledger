@@ -272,7 +272,10 @@ export default function PaymentPrintView({
                             {payments.map((payment) => {
                               const status = getDayStatus(ledger, payment.date);
                               const date = new Date(payment.date);
-                              const isService = payment.type === "service";
+                              const isServicePayment = payment.type === "service";
+                              const isServiceDay = payment.type === "service-day";
+                              const isEmergencyDay = payment.type === "emergency";
+                              const isPaidDayOverride = isServiceDay || isEmergencyDay;
 
                               return (
                                 <div
@@ -280,26 +283,30 @@ export default function PaymentPrintView({
                                   className="payment-item"
                                 >
                                   <div className="flex items-center gap-3">
-                                    {isService ? (
+                                    {isServicePayment ? (
                                       <div className="p-1.5 bg-orange-100 rounded-full">
                                         <Briefcase className="w-5 h-5 text-orange-600" />
+                                      </div>
+                                    ) : isEmergencyDay ? (
+                                      <div className="p-1.5 bg-amber-100 rounded-full">
+                                        <AlertTriangle className="w-5 h-5 text-amber-600" />
                                       </div>
                                     ) : status === "paid" && (
                                       <div className="p-1.5 bg-green-100 rounded-full">
                                         <CheckCircle className="w-5 h-5 text-green-600" />
                                       </div>
                                     )}
-                                    {!isService && status === "partial" && (
+                                    {!isServicePayment && status === "partial" && (
                                       <div className="p-1.5 bg-yellow-100 rounded-full">
                                         <Clock className="w-5 h-5 text-yellow-600" />
                                       </div>
                                     )}
-                                    {!isService && status === "overdue" && (
+                                    {!isServicePayment && status === "overdue" && (
                                       <div className="p-1.5 bg-red-100 rounded-full">
                                         <AlertTriangle className="w-5 h-5 text-red-600" />
                                       </div>
                                     )}
-                                    {!isService && status === "none" && (
+                                    {!isServicePayment && status === "none" && (
                                       <div className="p-1.5 bg-blue-100 rounded-full">
                                         <Wallet className="w-5 h-5 text-blue-600" />
                                       </div>
@@ -322,19 +329,27 @@ export default function PaymentPrintView({
                                   </div>
 
                                   <div className="text-right">
-                                    <p className={`font-bold text-lg ${isService ? "text-orange-600" : "text-green-600"}`}>
-                                      {isService ? "-" : "+"}KSh {payment.amount.toLocaleString()}
-                                    </p>
+                                    {isPaidDayOverride ? (
+                                      <p className="font-bold text-lg text-emerald-600">Paid Day</p>
+                                    ) : (
+                                      <p className={`font-bold text-lg ${isServicePayment ? "text-orange-600" : "text-green-600"}`}>
+                                        {isServicePayment ? "-" : "+"}KSh {payment.amount.toLocaleString()}
+                                      </p>
+                                    )}
                                     <span className="badge">
-                                      {isService
+                                      {isServicePayment
                                         ? "Service Payment"
-                                        : status === "paid"
-                                          ? "Paid in Full"
-                                          : status === "partial"
-                                            ? "Partial"
-                                            : status === "overdue"
-                                              ? "Overdue"
-                                              : "Recorded"}
+                                        : isServiceDay
+                                          ? "Service Day"
+                                          : isEmergencyDay
+                                            ? "Emergency Day"
+                                            : status === "paid"
+                                              ? "Paid in Full"
+                                              : status === "partial"
+                                                ? "Partial"
+                                                : status === "overdue"
+                                                  ? "Overdue"
+                                                  : "Recorded"}
                                     </span>
                                   </div>
                                 </div>
