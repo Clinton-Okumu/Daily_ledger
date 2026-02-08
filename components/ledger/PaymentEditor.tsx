@@ -32,7 +32,7 @@ export default function PaymentEditor({
 
   const handleSave = () => {
     const dateStr = formatDate(date);
-    const isPaidDayType = type === "service-day" || type === "emergency";
+    const isPaidDayType = type === "service-day";
     const numAmount = isPaidDayType ? 0 : parseFloat(amount) || 0;
 
     if (!isPaidDayType && numAmount === 0) {
@@ -69,11 +69,11 @@ export default function PaymentEditor({
   };
 
   const hasPayments = dayPayments.length > 0;
-  const isPaidDayType = type === "service-day" || type === "emergency";
+  const isPaidDayType = type === "service-day";
   const handleTypeChange = (value: string) => {
     const nextType = value as PaymentType;
     setType(nextType);
-    if (nextType === "service-day" || nextType === "emergency") {
+    if (nextType === "service-day") {
       setAmount("0");
     } else if (amount === "0") {
       setAmount("");
@@ -89,17 +89,17 @@ export default function PaymentEditor({
       case "service-day":
         return "Service Day";
       case "emergency":
-        return "Emergency Day";
+        return "Emergency";
       default:
         return "Payment";
     }
   };
 
   const formatAmountLabel = (payment: { amount: number; type: PaymentType }) => {
-    if (payment.type === "service-day" || payment.type === "emergency") {
-      return "Paid day";
+    if (payment.type === "service-day") {
+      return "Service day";
     }
-    const sign = payment.type === "service" ? "-" : "+";
+    const sign = payment.type === "service" || payment.type === "emergency" ? "-" : "+";
     return `${sign}KSh ${payment.amount.toLocaleString()}`;
   };
 
@@ -161,13 +161,13 @@ export default function PaymentEditor({
                 <SelectItem value="service-day">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Service Day (Paid day)</span>
+                    <span>Service Day (marker)</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="emergency">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <span>Emergency Day (Paid day)</span>
+                    <span>Emergency (YOU pay)</span>
                   </div>
                 </SelectItem>
               </SelectContent>

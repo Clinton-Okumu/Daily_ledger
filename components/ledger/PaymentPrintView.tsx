@@ -262,9 +262,9 @@ export default function PaymentPrintView({
                       const groupPaid = payments
                         .filter((payment) => payment.type === "daily-charge")
                         .reduce((sum, payment) => sum + payment.amount, 0);
-                      const groupService = payments
-                        .filter((payment) => payment.type === "service")
-                        .reduce((sum, payment) => sum + payment.amount, 0);
+                       const groupService = payments
+                         .filter((payment) => payment.type === "service" || payment.type === "emergency")
+                         .reduce((sum, payment) => sum + payment.amount, 0);
 
                       return (
                         <div key={label}>
@@ -273,10 +273,11 @@ export default function PaymentPrintView({
                             {payments.map((payment) => {
                               const status = getDayStatus(ledger, payment.date);
                                const date = parseDate(payment.date);
-                              const isServicePayment = payment.type === "service";
-                              const isServiceDay = payment.type === "service-day";
-                              const isEmergencyDay = payment.type === "emergency";
-                              const isPaidDayOverride = isServiceDay || isEmergencyDay;
+                               const isServicePayment =
+                                 payment.type === "service" || payment.type === "emergency";
+                               const isServiceDay = payment.type === "service-day";
+                               const isEmergencyPayment = payment.type === "emergency";
+                               const isPaidDayOverride = isServiceDay;
 
                               return (
                                 <div
@@ -284,19 +285,19 @@ export default function PaymentPrintView({
                                   className="payment-item"
                                 >
                                   <div className="flex items-center gap-3">
-                                    {isServicePayment ? (
-                                      <div className="p-1.5 bg-orange-100 rounded-full">
-                                        <Briefcase className="w-5 h-5 text-orange-600" />
-                                      </div>
-                                    ) : isEmergencyDay ? (
-                                      <div className="p-1.5 bg-amber-100 rounded-full">
-                                        <AlertTriangle className="w-5 h-5 text-amber-600" />
-                                      </div>
-                                    ) : status === "paid" && (
-                                      <div className="p-1.5 bg-green-100 rounded-full">
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
-                                      </div>
-                                    )}
+                                     {isServicePayment ? (
+                                       <div className="p-1.5 bg-orange-100 rounded-full">
+                                         {isEmergencyPayment ? (
+                                           <AlertTriangle className="w-5 h-5 text-amber-600" />
+                                         ) : (
+                                           <Briefcase className="w-5 h-5 text-orange-600" />
+                                         )}
+                                       </div>
+                                     ) : status === "paid" && (
+                                       <div className="p-1.5 bg-green-100 rounded-full">
+                                         <CheckCircle className="w-5 h-5 text-green-600" />
+                                       </div>
+                                     )}
                                     {!isServicePayment && status === "partial" && (
                                       <div className="p-1.5 bg-yellow-100 rounded-full">
                                         <Clock className="w-5 h-5 text-yellow-600" />
@@ -330,20 +331,20 @@ export default function PaymentPrintView({
                                   </div>
 
                                   <div className="text-right">
-                                    {isPaidDayOverride ? (
-                                      <p className="font-bold text-lg text-emerald-600">Paid Day</p>
-                                    ) : (
-                                      <p className={`font-bold text-lg ${isServicePayment ? "text-orange-600" : "text-green-600"}`}>
-                                        {isServicePayment ? "-" : "+"}KSh {payment.amount.toLocaleString()}
-                                      </p>
-                                    )}
+                                     {isPaidDayOverride ? (
+                                       <p className="font-bold text-lg text-sky-600">Service Day</p>
+                                     ) : (
+                                       <p className={`font-bold text-lg ${isServicePayment ? "text-orange-600" : "text-green-600"}`}>
+                                         {isServicePayment ? "-" : "+"}KSh {payment.amount.toLocaleString()}
+                                       </p>
+                                     )}
                                     <span className="badge">
                                       {isServicePayment
-                                        ? "Service Payment"
+                                        ? isEmergencyPayment
+                                          ? "Emergency"
+                                          : "Service"
                                         : isServiceDay
                                           ? "Service Day"
-                                          : isEmergencyDay
-                                            ? "Emergency Day"
                                             : status === "paid"
                                               ? "Paid in Full"
                                               : status === "partial"

@@ -40,10 +40,9 @@ export default function DayCell({
   const dayPayments = getDayPayments(ledger, dateStr);
   const today = isToday(date);
   const isSunday = date.getDay() === 0;
-  const hasServicePayment = paymentTypes.includes("service");
+  const hasServicePayment = paymentTypes.includes("service") || paymentTypes.includes("emergency");
   const hasServiceDay = paymentTypes.includes("service-day");
-  const hasEmergencyDay = paymentTypes.includes("emergency");
-  const hasPaidDayOverride = hasServiceDay || hasEmergencyDay;
+  const hasEmergencyPayment = paymentTypes.includes("emergency");
 
   const getStatusBadge = (status: DayStatus) => {
     switch (status) {
@@ -107,22 +106,20 @@ export default function DayCell({
                 </Badge>
               )}
               {hasServiceDay && (
-                <Badge className="bg-emerald-500 hover:bg-emerald-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
+                <Badge className="bg-sky-500 hover:bg-sky-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
                   <CheckCircle2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
                   <span className="hidden md:inline">Service Day</span>
                 </Badge>
               )}
-              {hasEmergencyDay && (
+              {hasEmergencyPayment && (
                 <Badge className="bg-amber-500 hover:bg-amber-600 gap-0.5 border-0 text-[9px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 md:px-2 py-0">
                   <AlertTriangle className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
                   <span className="hidden md:inline">Emergency</span>
                 </Badge>
               )}
-              {!hasPaidDayOverride && (
-                <div className="text-[9px] sm:text-[10px] md:text-xs">
-                  {getStatusBadge(status)}
-                </div>
-              )}
+              <div className="text-[9px] sm:text-[10px] md:text-xs">
+                {getStatusBadge(status)}
+              </div>
             </div>
           ) : (
             <div className="text-[9px] sm:text-[10px] md:text-xs">

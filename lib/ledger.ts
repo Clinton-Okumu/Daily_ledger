@@ -6,7 +6,9 @@ export function totalPaid(state: LedgerState) {
 }
 
 export function totalService(state: LedgerState) {
-  return state.payments.filter(p => p.type === "service").reduce((sum, p) => sum + p.amount, 0);
+  return state.payments
+    .filter((p) => p.type === "service" || p.type === "emergency")
+    .reduce((sum, p) => sum + p.amount, 0);
 }
 
 export function totalCharged(state: LedgerState, upToDate: string) {
@@ -17,7 +19,8 @@ export function totalCharged(state: LedgerState, upToDate: string) {
 }
 
 export function balance(state: LedgerState, upToDate: string) {
-  return totalPaid(state) + totalService(state) - totalCharged(state, upToDate);
+  void upToDate;
+  return totalPaid(state) - totalService(state);
 }
 
 function getLedgerStartDateStr(state: LedgerState): string | null {
@@ -39,7 +42,7 @@ function hasNonChargeOverride(state: LedgerState, date: Date) {
   return state.payments.some(
     (payment) =>
       payment.date === dateStr &&
-      (payment.type === "service-day" || payment.type === "emergency")
+      payment.type === "service-day"
   );
 }
 
@@ -91,7 +94,7 @@ export function totalServiceInRange(
   return state.payments
     .filter(
       (payment) =>
-        payment.type === "service" &&
+        (payment.type === "service" || payment.type === "emergency") &&
         payment.date >= startStr &&
         payment.date <= endStr
     )
