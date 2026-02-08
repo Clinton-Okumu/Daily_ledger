@@ -9,12 +9,13 @@ export function totalPaid(state: LedgerState) {
 
 export function totalPaidYtd(state: LedgerState, upToDate: string) {
   const startStr = getStartOfYearStr(upToDate);
+  const startTime = parseDate(startStr).getTime();
+  const endTime = parseDate(upToDate).getTime();
   return state.payments
     .filter(
       (p) =>
         p.type === "daily-charge" &&
-        p.date >= startStr &&
-        p.date <= upToDate
+        isDateInRange(p.date, startTime, endTime)
     )
     .reduce((sum, p) => sum + p.amount, 0);
 }
@@ -27,12 +28,13 @@ export function totalService(state: LedgerState) {
 
 export function totalServiceYtd(state: LedgerState, upToDate: string) {
   const startStr = getStartOfYearStr(upToDate);
+  const startTime = parseDate(startStr).getTime();
+  const endTime = parseDate(upToDate).getTime();
   return state.payments
     .filter(
       (p) =>
         (p.type === "service" || p.type === "emergency") &&
-        p.date >= startStr &&
-        p.date <= upToDate
+        isDateInRange(p.date, startTime, endTime)
     )
     .reduce((sum, p) => sum + p.amount, 0);
 }
@@ -59,8 +61,13 @@ function hasNonChargeOverride(state: LedgerState, date: Date) {
   return state.payments.some(
     (payment) =>
       payment.date === dateStr &&
-      payment.type === "service-day"
+      (payment.type === "service-day" || payment.type === "emergency")
   );
+}
+
+function isDateInRange(dateStr: string, startTime: number, endTime: number) {
+  const t = parseDate(dateStr).getTime();
+  return Number.isFinite(t) && t >= startTime && t <= endTime;
 }
 
 function countChargeableDays(state: LedgerState, startDate: Date, endDate: Date) {
@@ -89,14 +96,13 @@ export function totalPaidInRange(
   startDate: Date,
   endDate: Date
 ) {
-  const startStr = formatDate(startDate);
-  const endStr = formatDate(endDate);
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
   return state.payments
     .filter(
       (payment) =>
         payment.type === "daily-charge" &&
-        payment.date >= startStr &&
-        payment.date <= endStr
+        isDateInRange(payment.date, startTime, endTime)
     )
     .reduce((sum, payment) => sum + payment.amount, 0);
 }
@@ -106,14 +112,13 @@ export function totalServiceInRange(
   startDate: Date,
   endDate: Date
 ) {
-  const startStr = formatDate(startDate);
-  const endStr = formatDate(endDate);
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
   return state.payments
     .filter(
       (payment) =>
         (payment.type === "service" || payment.type === "emergency") &&
-        payment.date >= startStr &&
-        payment.date <= endStr
+        isDateInRange(payment.date, startTime, endTime)
     )
     .reduce((sum, payment) => sum + payment.amount, 0);
 }

@@ -11,6 +11,7 @@ export function getDayStatus(
   const payments = ledger.payments.filter((p) => p.date === date);
   const isPast = date < today;
   const isFuture = date > today;
+  const hasEmergencyPaidDay = payments.some((payment) => payment.type === "emergency");
   const dailyChargeTotal = payments
     .filter((payment) => payment.type === "daily-charge")
     .reduce((sum, payment) => sum + payment.amount, 0);
@@ -20,6 +21,7 @@ export function getDayStatus(
     if (isPast) return "overdue";
     return "unpaid";
   }
+  if (hasEmergencyPaidDay) return "paid";
   if (dailyChargeTotal >= ledger.dailyCharge) return "paid";
   if (dailyChargeTotal > 0) return isPast ? "overdue" : "partial";
   return isPast ? "overdue" : "unpaid";
