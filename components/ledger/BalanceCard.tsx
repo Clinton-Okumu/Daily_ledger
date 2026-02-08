@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LedgerState } from "@/types/ledger";
-import { balance, totalPaidYtd, totalServiceYtd } from "@/lib/ledger";
+import { balance, totalCharged, totalPaidYtd, totalServiceYtd } from "@/lib/ledger";
 import { formatDate } from "@/lib/date";
 import { ArrowUp, ArrowDown, Wallet, Shield } from "lucide-react";
 
@@ -13,6 +13,7 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
   }, []);
 
   const today = formatDate(new Date());
+  const chargedYtd = totalCharged(ledger, today);
   const inflowYtd = totalPaidYtd(ledger, today);
   const outflowYtd = totalServiceYtd(ledger, today);
   const currentBalance = balance(ledger, today);
@@ -20,6 +21,7 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
   const businessOwesYou = currentBalance > 0;
   const displayBalance = mounted ? currentBalance : 0;
   const displayYouOweBusiness = mounted ? youOweBusiness : false;
+  const displayCharged = mounted ? chargedYtd : 0;
   const displayInflow = mounted ? inflowYtd : 0;
   const displayOutflow = mounted ? outflowYtd : 0;
 
@@ -78,7 +80,7 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
             )}
             {mounted && (
               <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">
-                Paid: KSh {displayInflow.toLocaleString()}  Out: KSh {displayOutflow.toLocaleString()}
+                Charged: KSh {displayCharged.toLocaleString()}  Paid: KSh {displayInflow.toLocaleString()}  Service: KSh {displayOutflow.toLocaleString()}
               </p>
             )}
           </div>
