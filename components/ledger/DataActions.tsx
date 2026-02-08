@@ -1,19 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LedgerState } from "@/types/ledger";
 import { exportToJSON, importFromJSON, downloadJSON } from "@/lib/backup";
-import { FileDown, FileUp, Database, ShieldCheck, Printer } from "lucide-react";
+import { FileDown, FileUp, Database, ShieldCheck, Printer, Cloud, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import PaymentPrintView from "./PaymentPrintView";
 
 interface DataActionsProps {
   onLedgerChange: (ledger: LedgerState) => void;
   ledger: LedgerState;
+  cloudKey: string;
+  cloudStatus: "off" | "loading" | "ready" | "saving" | "error";
+  onCloudKeyChange: (key: string) => void;
+  onCloudSyncNow: () => void;
 }
 
 export default function DataActions({
   onLedgerChange,
   ledger,
+  cloudKey,
+  cloudStatus,
+  onCloudKeyChange,
+  onCloudSyncNow,
 }: DataActionsProps) {
   const [showPrintView, setShowPrintView] = useState(false);
 
@@ -63,6 +73,47 @@ export default function DataActions({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Cloud className="w-4 h-4 text-primary" />
+              Cloud Sync
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cloudKey" className="text-xs text-muted-foreground">
+                Cloud key
+              </Label>
+              <Input
+                id="cloudKey"
+                value={cloudKey}
+                onChange={(e) => onCloudKeyChange(e.target.value)}
+                placeholder="Paste shared secret"
+              />
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs text-muted-foreground">
+                  {cloudStatus === "off"
+                    ? "Cloud off"
+                    : cloudStatus === "loading"
+                      ? "Loading..."
+                      : cloudStatus === "saving"
+                        ? "Saving..."
+                        : cloudStatus === "ready"
+                          ? "Synced"
+                          : "Error"}
+                </div>
+                <Button
+                  onClick={onCloudSyncNow}
+                  variant="outline"
+                  size="sm"
+                  disabled={!cloudKey || cloudStatus === "loading"}
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Sync now
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={handleExport} className="flex-1 gap-2 h-12">
               <FileDown className="w-5 h-5" />

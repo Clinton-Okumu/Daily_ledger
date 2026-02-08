@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { LedgerState } from "@/types/ledger";
 import { loadLedger, saveLedger } from "@/lib/storage";
+import { fetchLedgerFromCloud, loadCloudKey, saveCloudKey, saveLedgerToCloud } from "@/lib/cloud";
 
 import LedgerHeader from "@/components/ledger/LedgerHeader";
 import BalanceCard from "@/components/ledger/BalanceCard";
@@ -14,16 +15,102 @@ import MonthlyTotalsCard from "@/components/ledger/MonthlyTotalsCard";
 export default function Page() {
   const [ledger, setLedger] = useState<LedgerState>({ dailyCharge: 300, payments: [] });
   const [hydrated, setHydrated] = useState(false);
+  const [cloudKey, setCloudKey] = useState<string>("");
+  const [cloudStatus, setCloudStatus] = useState<"off" | "loading" | "ready" | "saving" | "error">("off");
+
+  const looksLikeEmptyCloud = (state: LedgerState) =>
+    state.dailyCharge === 300 && state.payments.length === 0;
+
+  const hasLocalDataWorthSeeding = (state: LedgerState) =>
+    state.dailyCharge !== 300 || state.payments.length > 0;
 
   useEffect(() => {
-    setLedger(loadLedger());
-    setHydrated(true);
+    const key = loadCloudKey();
+    setCloudKey(key);
+    const year = new Date().getFullYear();
+
+    if (!key) {
+      setCloudStatus("off");
+      setLedger(loadLedger());
+      setHydrated(true);
+      return;
+    }
+
+    setCloudStatus("loading");
+    fetchLedgerFromCloud({ year, cloudKey: key })
+      .then((state) => {
+        const local = loadLedger();
+        if (looksLikeEmptyCloud(state) && hasLocalDataWorthSeeding(local)) {
+          setLedger(local);
+          setCloudStatus("saving");
+          return saveLedgerToCloud({ year, cloudKey: key, state: local })
+            .then(() => setCloudStatus("ready"))
+            .catch(() => setCloudStatus("error"));
+        }
+        setLedger(state);
+        setCloudStatus("ready");
+      })
+      .catch(() => {
+        // Fallback to local data if cloud is unavailable.
+        setLedger(loadLedger());
+        setCloudStatus("error");
+      })
+      .finally(() => setHydrated(true));
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
+    // Always keep a local copy as a safety net.
     saveLedger(ledger);
-  }, [ledger, hydrated]);
+
+    if (!cloudKey) return;
+    const year = new Date().getFullYear();
+    setCloudStatus("saving");
+    const t = window.setTimeout(() => {
+      saveLedgerToCloud({ year, cloudKey, state: ledger })
+        .then(() => setCloudStatus("ready"))
+        .catch(() => setCloudStatus("error"));
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [ledger, hydrated, cloudKey]);
+
+  const handleCloudKeyChange = (next: string) => {
+    const k = next.trim();
+    setCloudKey(k);
+    saveCloudKey(k);
+
+    if (!k) {
+      setCloudStatus("off");
+      return;
+    }
+
+    const year = new Date().getFullYear();
+    setCloudStatus("loading");
+    fetchLedgerFromCloud({ year, cloudKey: k })
+      .then((state) => {
+        const local = loadLedger();
+        if (looksLikeEmptyCloud(state) && hasLocalDataWorthSeeding(local)) {
+          setLedger(local);
+          setCloudStatus("saving");
+          return saveLedgerToCloud({ year, cloudKey: k, state: local })
+            .then(() => setCloudStatus("ready"))
+            .catch(() => setCloudStatus("error"));
+        }
+
+        setLedger(state);
+        setCloudStatus("ready");
+      })
+      .catch(() => setCloudStatus("error"));
+  };
+
+  const handleCloudSyncNow = () => {
+    if (!cloudKey) return;
+    const year = new Date().getFullYear();
+    setCloudStatus("saving");
+    saveLedgerToCloud({ year, cloudKey, state: ledger })
+      .then(() => setCloudStatus("ready"))
+      .catch(() => setCloudStatus("error"));
+  };
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
@@ -48,7 +135,14 @@ export default function Page() {
             <MonthlyTotalsCard ledger={ledger} />
           </div>
           <div className="lg:col-span-4">
-            <DataActions onLedgerChange={setLedger} ledger={ledger} />
+            <DataActions
+              onLedgerChange={setLedger}
+              ledger={ledger}
+              cloudKey={cloudKey}
+              cloudStatus={cloudStatus}
+              onCloudKeyChange={handleCloudKeyChange}
+              onCloudSyncNow={handleCloudSyncNow}
+            />
           </div>
         </div>
       </div>
