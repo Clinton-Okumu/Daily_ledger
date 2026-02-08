@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { LedgerState } from "@/types/ledger";
-import { balance, totalPaidYtd, totalServiceYtd, totalCharged } from "@/lib/ledger";
+import { balance, dailyIncome, totalPaidYtd, totalServiceYtd, totalCharged } from "@/lib/ledger";
 import { formatDate, parseDate } from "@/lib/date";
 import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase, AlertTriangle } from "lucide-react";
 import { getDayStatus } from "@/lib/status";
@@ -259,11 +259,23 @@ export default function PaymentPrintView({
                 ) : (
                   <div className="space-y-3">
                     {Array.from(groupedPayments.entries()).map(([label, payments]) => {
-                      const groupPaid = payments
-                        .filter((payment) => payment.type === "daily-charge")
-                        .reduce((sum, payment) => sum + payment.amount, 0);
+                       const byDate = new Map<string, { dailyChargePaid: number; hasEmergency: boolean }>();
+                       for (const p of payments) {
+                         const rec = byDate.get(p.date) ?? { dailyChargePaid: 0, hasEmergency: false };
+                         if (p.type === "daily-charge") rec.dailyChargePaid += p.amount;
+                         if (p.type === "emergency") rec.hasEmergency = true;
+                         byDate.set(p.date, rec);
+                       }
+
+                       let groupPaid = 0;
+                       for (const { dailyChargePaid, hasEmergency } of byDate.values()) {
+                         groupPaid += hasEmergency
+                           ? Math.max(dailyChargePaid, ledger.dailyCharge)
+                           : dailyChargePaid;
+                       }
+
                        const groupService = payments
-                         .filter((payment) => payment.type === "service" || payment.type === "emergency")
+                         .filter((payment) => payment.type === "service")
                          .reduce((sum, payment) => sum + payment.amount, 0);
 
                       return (
@@ -273,11 +285,10 @@ export default function PaymentPrintView({
                             {payments.map((payment) => {
                               const status = getDayStatus(ledger, payment.date);
                                const date = parseDate(payment.date);
-                               const isServicePayment =
-                                 payment.type === "service" || payment.type === "emergency";
+                               const isServicePayment = payment.type === "service";
                                const isServiceDay = payment.type === "service-day";
-                               const isEmergencyPayment = payment.type === "emergency";
-                               const isPaidDayOverride = isServiceDay;
+                               const isEmergencyDay = payment.type === "emergency";
+                               const isPaidDayOverride = isServiceDay || isEmergencyDay;
 
                               return (
                                 <div
@@ -287,11 +298,11 @@ export default function PaymentPrintView({
                                   <div className="flex items-center gap-3">
                                      {isServicePayment ? (
                                        <div className="p-1.5 bg-orange-100 rounded-full">
-                                         {isEmergencyPayment ? (
-                                           <AlertTriangle className="w-5 h-5 text-amber-600" />
-                                         ) : (
-                                           <Briefcase className="w-5 h-5 text-orange-600" />
-                                         )}
+                                         <Briefcase className="w-5 h-5 text-orange-600" />
+                                       </div>
+                                     ) : isEmergencyDay ? (
+                                       <div className="p-1.5 bg-amber-100 rounded-full">
+                                         <AlertTriangle className="w-5 h-5 text-amber-600" />
                                        </div>
                                      ) : status === "paid" && (
                                        <div className="p-1.5 bg-green-100 rounded-full">
@@ -332,19 +343,26 @@ export default function PaymentPrintView({
 
                                   <div className="text-right">
                                      {isPaidDayOverride ? (
-                                       <p className="font-bold text-lg text-sky-600">Service Day</p>
+                                       <p className={`font-bold text-lg ${isEmergencyDay ? "text-amber-600" : "text-sky-600"}`}>
+                                         {isEmergencyDay ? "Emergency Day" : "Service Day"}
+                                       </p>
                                      ) : (
                                        <p className={`font-bold text-lg ${isServicePayment ? "text-orange-600" : "text-green-600"}`}>
                                          {isServicePayment ? "-" : "+"}KSh {payment.amount.toLocaleString()}
                                        </p>
                                      )}
+                                     {isEmergencyDay && (
+                                       <p className="text-sm text-muted-foreground">
+                                         +KSh {dailyIncome(ledger, payment.date).toLocaleString()}
+                                       </p>
+                                     )}
                                     <span className="badge">
                                       {isServicePayment
-                                        ? isEmergencyPayment
-                                          ? "Emergency"
-                                          : "Service"
+                                        ? "Service"
                                         : isServiceDay
                                           ? "Service Day"
+                                          : isEmergencyDay
+                                            ? "Emergency Day"
                                             : status === "paid"
                                               ? "Paid in Full"
                                               : status === "partial"

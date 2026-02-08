@@ -64,11 +64,11 @@ export default function MonthlyTotalsCard({ ledger }: { ledger: LedgerState }) {
                   <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                 </div>
                 <div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Service Fees</p>
-                  <p className="text-sm sm:text-lg font-bold">KSh {service.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
+                   <p className="text-[10px] sm:text-xs text-muted-foreground">Service Fees</p>
+                   <p className="text-sm sm:text-lg font-bold">KSh {service.toLocaleString()}</p>
+                 </div>
+               </div>
+             </div>
             <div className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg">

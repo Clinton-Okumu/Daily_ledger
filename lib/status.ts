@@ -32,9 +32,14 @@ export function getDayPayments(ledger: LedgerState, date: string) {
 }
 
 export function getDayPayment(ledger: LedgerState, date: string) {
-  return ledger.payments
-    .filter((p) => p.date === date)
-    .reduce((sum, payment) => sum + payment.amount, 0);
+  const payments = ledger.payments.filter((p) => p.date === date);
+  const hasEmergencyPaidDay = payments.some((p) => p.type === "emergency");
+  const dailyChargeTotal = payments
+    .filter((p) => p.type === "daily-charge")
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  if (hasEmergencyPaidDay) return Math.max(dailyChargeTotal, ledger.dailyCharge);
+  return dailyChargeTotal;
 }
 
 export function getDayPaymentTypes(

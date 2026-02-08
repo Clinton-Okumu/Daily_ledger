@@ -32,7 +32,7 @@ export default function PaymentEditor({
 
   const handleSave = () => {
     const dateStr = formatDate(date);
-    const isPaidDayType = type === "service-day";
+    const isPaidDayType = type === "service-day" || type === "emergency";
     const numAmount = isPaidDayType ? 0 : parseFloat(amount) || 0;
 
     if (!isPaidDayType && numAmount === 0) {
@@ -69,11 +69,11 @@ export default function PaymentEditor({
   };
 
   const hasPayments = dayPayments.length > 0;
-  const isPaidDayType = type === "service-day";
+  const isPaidDayType = type === "service-day" || type === "emergency";
   const handleTypeChange = (value: string) => {
     const nextType = value as PaymentType;
     setType(nextType);
-    if (nextType === "service-day") {
+    if (nextType === "service-day" || nextType === "emergency") {
       setAmount("0");
     } else if (amount === "0") {
       setAmount("");
@@ -89,7 +89,7 @@ export default function PaymentEditor({
       case "service-day":
         return "Service Day";
       case "emergency":
-        return "Emergency";
+        return "Emergency Day";
       default:
         return "Payment";
     }
@@ -99,7 +99,11 @@ export default function PaymentEditor({
     if (payment.type === "service-day") {
       return "Service day";
     }
-    const sign = payment.type === "service" || payment.type === "emergency" ? "-" : "+";
+    if (payment.type === "emergency") {
+      return "Paid day";
+    }
+
+    const sign = payment.type === "service" ? "-" : "+";
     return `${sign}KSh ${payment.amount.toLocaleString()}`;
   };
 
@@ -167,7 +171,7 @@ export default function PaymentEditor({
                 <SelectItem value="emergency">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <span>Emergency (YOU pay)</span>
+                    <span>Emergency Day (Paid)</span>
                   </div>
                 </SelectItem>
               </SelectContent>

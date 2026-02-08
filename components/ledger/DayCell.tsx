@@ -40,7 +40,7 @@ export default function DayCell({
   const dayPayments = getDayPayments(ledger, dateStr);
   const today = isToday(date);
   const isSunday = date.getDay() === 0;
-  const hasServicePayment = paymentTypes.includes("service") || paymentTypes.includes("emergency");
+  const hasServicePayment = paymentTypes.includes("service");
   const hasServiceDay = paymentTypes.includes("service-day");
   const hasEmergencyPayment = paymentTypes.includes("emergency");
 

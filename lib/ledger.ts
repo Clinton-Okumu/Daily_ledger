@@ -2,41 +2,23 @@ import { LedgerState } from "@/types/ledger";
 import { formatDate, parseDate } from "@/lib/date";
 
 export function totalPaid(state: LedgerState) {
-  return state.payments
-    .filter((p) => p.type === "daily-charge")
-    .reduce((sum, p) => sum + p.amount, 0);
+  return totalPaidInRange(state, new Date(0), new Date(8640000000000000));
 }
 
 export function totalPaidYtd(state: LedgerState, upToDate: string) {
   const startStr = getStartOfYearStr(upToDate);
-  const startTime = parseDate(startStr).getTime();
-  const endTime = parseDate(upToDate).getTime();
-  return state.payments
-    .filter(
-      (p) =>
-        p.type === "daily-charge" &&
-        isDateInRange(p.date, startTime, endTime)
-    )
-    .reduce((sum, p) => sum + p.amount, 0);
+  return totalPaidInRange(state, parseDate(startStr), parseDate(upToDate));
 }
 
 export function totalService(state: LedgerState) {
   return state.payments
-    .filter((p) => p.type === "service" || p.type === "emergency")
+    .filter((p) => p.type === "service")
     .reduce((sum, p) => sum + p.amount, 0);
 }
 
 export function totalServiceYtd(state: LedgerState, upToDate: string) {
   const startStr = getStartOfYearStr(upToDate);
-  const startTime = parseDate(startStr).getTime();
-  const endTime = parseDate(upToDate).getTime();
-  return state.payments
-    .filter(
-      (p) =>
-        (p.type === "service" || p.type === "emergency") &&
-        isDateInRange(p.date, startTime, endTime)
-    )
-    .reduce((sum, p) => sum + p.amount, 0);
+  return totalServiceInRange(state, parseDate(startStr), parseDate(upToDate));
 }
 
 export function totalCharged(state: LedgerState, upToDate: string) {
@@ -61,13 +43,29 @@ function hasNonChargeOverride(state: LedgerState, date: Date) {
   return state.payments.some(
     (payment) =>
       payment.date === dateStr &&
-      (payment.type === "service-day" || payment.type === "emergency")
+      payment.type === "service-day"
   );
 }
 
 function isDateInRange(dateStr: string, startTime: number, endTime: number) {
   const t = parseDate(dateStr).getTime();
   return Number.isFinite(t) && t >= startTime && t <= endTime;
+}
+
+function dailyIncomeForDate(state: LedgerState, dateStr: string) {
+  let dailyChargePaid = 0;
+  let hasEmergencyPaidDay = false;
+
+  for (const p of state.payments) {
+    if (p.date !== dateStr) continue;
+    if (p.type === "daily-charge") dailyChargePaid += p.amount;
+    if (p.type === "emergency") hasEmergencyPaidDay = true;
+  }
+
+  if (hasEmergencyPaidDay) {
+    return Math.max(dailyChargePaid, state.dailyCharge);
+  }
+  return dailyChargePaid;
 }
 
 function countChargeableDays(state: LedgerState, startDate: Date, endDate: Date) {
@@ -98,13 +96,19 @@ export function totalPaidInRange(
 ) {
   const startTime = startDate.getTime();
   const endTime = endDate.getTime();
-  return state.payments
-    .filter(
-      (payment) =>
-        payment.type === "daily-charge" &&
-        isDateInRange(payment.date, startTime, endTime)
-    )
-    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  const dates = new Set<string>();
+  for (const p of state.payments) {
+    if (p.type !== "daily-charge" && p.type !== "emergency") continue;
+    if (!isDateInRange(p.date, startTime, endTime)) continue;
+    dates.add(p.date);
+  }
+
+  let sum = 0;
+  for (const dateStr of dates) {
+    sum += dailyIncomeForDate(state, dateStr);
+  }
+  return sum;
 }
 
 export function totalServiceInRange(
@@ -117,8 +121,12 @@ export function totalServiceInRange(
   return state.payments
     .filter(
       (payment) =>
-        (payment.type === "service" || payment.type === "emergency") &&
+        payment.type === "service" &&
         isDateInRange(payment.date, startTime, endTime)
     )
     .reduce((sum, payment) => sum + payment.amount, 0);
+}
+
+export function dailyIncome(state: LedgerState, dateStr: string) {
+  return dailyIncomeForDate(state, dateStr);
 }
