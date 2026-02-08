@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { LedgerState } from "@/types/ledger";
-import { balance, totalPaid, totalService, totalCharged } from "@/lib/ledger";
+import { balance, totalPaidYtd, totalServiceYtd, totalCharged } from "@/lib/ledger";
 import { formatDate, parseDate } from "@/lib/date";
 import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase, AlertTriangle } from "lucide-react";
 import { getDayStatus } from "@/lib/status";
@@ -22,16 +22,16 @@ export default function PaymentPrintView({
   const printRef = useRef<HTMLDivElement>(null);
   const today = formatDate(new Date());
   const currentBalance = balance(ledger, today);
-  const youOweBusiness = currentBalance > 0;
-  const paid = totalPaid(ledger);
-  const service = totalService(ledger);
+  const isNetOut = currentBalance < 0;
+  const paid = totalPaidYtd(ledger, today);
+  const service = totalServiceYtd(ledger, today);
   const charged = totalCharged(ledger, today);
   const amountDue = Math.max(0, charged - paid - service);
 
   const sortedPayments = [...ledger.payments].sort(
     (a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()
   );
-  const periodStartDate = parseDate(sortedPayments[sortedPayments.length - 1]?.date ?? today);
+  const periodStartDate = parseDate(`${parseDate(today).getFullYear()}-01-01`);
   const periodEndDate = parseDate(today);
   const periodLabel = `${periodStartDate.toLocaleDateString("en-US", {
     month: "short",
@@ -216,23 +216,23 @@ export default function PaymentPrintView({
                   <p className="summary-label">Current Balance</p>
                   <p className="summary-value">KSh {Math.abs(currentBalance).toLocaleString()}</p>
                   <p className="text-xs mt-1">
-                    {youOweBusiness ? "You owe business" : "Business owes you"}
+                    {isNetOut ? "Net outflow (YTD)" : "Net inflow (YTD)"}
                   </p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Amount Due (after service)</p>
+                  <p className="summary-label">Amount Due (YTD, after service)</p>
                   <p className="summary-value">KSh {amountDue.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Total Paid (In)</p>
+                  <p className="summary-label">Total Paid (In, YTD)</p>
                   <p className="summary-value">KSh {paid.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Total Service (Out)</p>
+                  <p className="summary-label">Total Service (Out, YTD)</p>
                   <p className="summary-value">KSh {service.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Total Charged</p>
+                  <p className="summary-label">Total Charged (YTD)</p>
                   <p className="summary-value">KSh {charged.toLocaleString()}</p>
                 </div>
               </div>
@@ -368,19 +368,12 @@ export default function PaymentPrintView({
                 )}
               </div>
 
-              {youOweBusiness && (
-                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                  <div className="flex items-center gap-2 text-destructive font-medium">
-                    Outstanding Balance
-                  </div>
-                  <p className="text-2xl font-bold text-destructive mt-2">
-                    KSh {Math.abs(currentBalance).toLocaleString()}
-                  </p>
-                  <p className="text-sm text-destructive/80 mt-1">
-                    Please clear the outstanding balance at your earliest convenience.
-                  </p>
-                </div>
-              )}
+              <div className="p-4 bg-muted/30 border rounded-lg">
+                <div className="flex items-center gap-2 font-medium">Year-to-date net</div>
+                <p className={`text-2xl font-bold mt-2 ${isNetOut ? "text-red-600" : "text-green-600"}`}>
+                  KSh {Math.abs(currentBalance).toLocaleString()}
+                </p>
+              </div>
             </div>
           </div>
         </div>

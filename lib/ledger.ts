@@ -2,7 +2,21 @@ import { LedgerState } from "@/types/ledger";
 import { formatDate, parseDate } from "@/lib/date";
 
 export function totalPaid(state: LedgerState) {
-  return state.payments.filter(p => p.type === "daily-charge").reduce((sum, p) => sum + p.amount, 0);
+  return state.payments
+    .filter((p) => p.type === "daily-charge")
+    .reduce((sum, p) => sum + p.amount, 0);
+}
+
+export function totalPaidYtd(state: LedgerState, upToDate: string) {
+  const startStr = getStartOfYearStr(upToDate);
+  return state.payments
+    .filter(
+      (p) =>
+        p.type === "daily-charge" &&
+        p.date >= startStr &&
+        p.date <= upToDate
+    )
+    .reduce((sum, p) => sum + p.amount, 0);
 }
 
 export function totalService(state: LedgerState) {
@@ -11,30 +25,33 @@ export function totalService(state: LedgerState) {
     .reduce((sum, p) => sum + p.amount, 0);
 }
 
+export function totalServiceYtd(state: LedgerState, upToDate: string) {
+  const startStr = getStartOfYearStr(upToDate);
+  return state.payments
+    .filter(
+      (p) =>
+        (p.type === "service" || p.type === "emergency") &&
+        p.date >= startStr &&
+        p.date <= upToDate
+    )
+    .reduce((sum, p) => sum + p.amount, 0);
+}
+
 export function totalCharged(state: LedgerState, upToDate: string) {
-  const start = parseDate(getLedgerStartDateStr(state) ?? upToDate);
+  const start = parseDate(getStartOfYearStr(upToDate));
   const end = parseDate(upToDate);
 
   return totalChargedInRange(state, start, end);
 }
 
 export function balance(state: LedgerState, upToDate: string) {
-  void upToDate;
-  return totalPaid(state) - totalService(state);
+  return totalPaidYtd(state, upToDate) - totalServiceYtd(state, upToDate);
 }
 
-function getLedgerStartDateStr(state: LedgerState): string | null {
-  let minDateStr: string | null = null;
-  let minTime = Number.POSITIVE_INFINITY;
-  for (const payment of state.payments) {
-    const t = parseDate(payment.date).getTime();
-    if (!Number.isFinite(t)) continue;
-    if (t < minTime) {
-      minTime = t;
-      minDateStr = payment.date;
-    }
-  }
-  return minDateStr;
+function getStartOfYearStr(dateStr: string): string {
+  const yearFromStr = Number.parseInt(dateStr.slice(0, 4), 10);
+  const year = Number.isFinite(yearFromStr) ? yearFromStr : parseDate(dateStr).getFullYear();
+  return `${year}-01-01`;
 }
 
 function hasNonChargeOverride(state: LedgerState, date: Date) {

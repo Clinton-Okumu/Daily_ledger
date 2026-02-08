@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LedgerState } from "@/types/ledger";
-import { totalPaid, totalService, totalCharged } from "@/lib/ledger";
+import { totalPaidYtd, totalServiceYtd, totalCharged } from "@/lib/ledger";
 import { formatDate } from "@/lib/date";
 import { TrendingUp, Wallet2, Calendar, Briefcase } from "lucide-react";
 
@@ -13,8 +13,8 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
   }, []);
 
   const today = formatDate(new Date());
-  const paid = totalPaid(ledger);
-  const service = totalService(ledger);
+  const paid = totalPaidYtd(ledger, today);
+  const service = totalServiceYtd(ledger, today);
   const charged = totalCharged(ledger, today);
 
   return (
@@ -34,7 +34,7 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Charged</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Charged (YTD)</p>
               <p className="text-sm sm:text-lg font-bold">KSh {charged.toLocaleString()}</p>
             </div>
           </div>
@@ -45,7 +45,7 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
               <Wallet2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
             </div>
             <div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Paid</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Paid (YTD)</p>
               <p className="text-sm sm:text-lg font-bold">KSh {paid.toLocaleString()}</p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
               <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Service</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Service (YTD)</p>
               <p className="text-sm sm:text-lg font-bold">KSh {service.toLocaleString()}</p>
             </div>
           </div>

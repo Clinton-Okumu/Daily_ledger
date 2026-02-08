@@ -14,28 +14,27 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
 
   const today = formatDate(new Date());
   const currentBalance = balance(ledger, today);
-  const youOweBusiness = currentBalance > 0;
-  const businessOwesYou = currentBalance < 0;
+  const isNetOut = currentBalance < 0;
   const displayBalance = mounted ? currentBalance : 0;
-  const displayBusinessOwesYou = mounted ? businessOwesYou : false;
+  const displayIsNetOut = mounted ? isNetOut : false;
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="py-6 sm:py-8 text-center relative overflow-hidden">
         <div
           className={`absolute inset-0 bg-gradient-to-br ${
-            displayBusinessOwesYou
-              ? "from-red-500/10 to-red-500/5"
-              : "from-green-500/10 to-green-500/5"
+             displayIsNetOut
+               ? "from-red-500/10 to-red-500/5"
+               : "from-green-500/10 to-green-500/5"
           }`}
         />
         <div className="relative z-10 space-y-3 sm:space-y-4">
           <div className="flex justify-center">
             <div
               className={`p-2.5 sm:p-3 rounded-full ${
-                displayBusinessOwesYou
-                  ? "bg-red-500/10 text-red-600"
-                  : "bg-green-500/10 text-green-600"
+                 displayIsNetOut
+                   ? "bg-red-500/10 text-red-600"
+                   : "bg-green-500/10 text-green-600"
               }`}
             >
               <Wallet className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -47,29 +46,29 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
             </p>
             {mounted ? (
               <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-                {displayBusinessOwesYou ? (
-                  <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
-                ) : (
-                  <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-                )}
-                <p
-                  className={`text-2xl sm:text-4xl font-bold tracking-tight ${
-                    displayBusinessOwesYou ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  KSh {displayBalance.toLocaleString()}
-                </p>
-              </div>
+                 {displayIsNetOut ? (
+                   <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+                 ) : (
+                   <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                 )}
+                 <p
+                   className={`text-2xl sm:text-4xl font-bold tracking-tight ${
+                     displayIsNetOut ? "text-red-600" : "text-green-600"
+                   }`}
+                 >
+                  KSh {Math.abs(displayBalance).toLocaleString()}
+                 </p>
+               </div>
             ) : (
               <p className="text-2xl sm:text-4xl font-bold text-muted-foreground">...</p>
             )}
             {mounted && (
               <p
                 className={`text-xs sm:text-sm font-medium ${
-                  businessOwesYou ? "text-red-600/80" : "text-green-600/80"
+                  isNetOut ? "text-red-600/80" : "text-green-600/80"
                 }`}
               >
-                {youOweBusiness ? "You Owe Business" : "Business Owes You"}
+                {isNetOut ? "Net Outflow (YTD)" : "Net Inflow (YTD)"}
               </p>
             )}
           </div>
