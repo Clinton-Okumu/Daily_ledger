@@ -22,7 +22,7 @@ export default function PaymentPrintView({
   const printRef = useRef<HTMLDivElement>(null);
   const today = formatDate(new Date());
   const currentBalance = balance(ledger, today);
-  const isNetOut = currentBalance < 0;
+  const youOweBusiness = currentBalance < 0;
   const paid = totalPaidYtd(ledger, today);
   const service = totalServiceYtd(ledger, today);
   const charged = totalCharged(ledger, today);
@@ -216,7 +216,7 @@ export default function PaymentPrintView({
                   <p className="summary-label">Current Balance</p>
                   <p className="summary-value">KSh {Math.abs(currentBalance).toLocaleString()}</p>
                   <p className="text-xs mt-1">
-                    Net (YTD)
+                    {youOweBusiness ? "You owe business" : "Business owes you"}
                   </p>
                 </div>
                 <div className="summary-item">
@@ -388,7 +388,7 @@ export default function PaymentPrintView({
 
               <div className="p-4 bg-muted/30 border rounded-lg">
                 <div className="flex items-center gap-2 font-medium">Year-to-date net</div>
-                <p className={`text-2xl font-bold mt-2 ${isNetOut ? "text-red-600" : "text-green-600"}`}>
+                <p className={`text-2xl font-bold mt-2 ${youOweBusiness ? "text-red-600" : "text-green-600"}`}>
                   KSh {Math.abs(currentBalance).toLocaleString()}
                 </p>
               </div>

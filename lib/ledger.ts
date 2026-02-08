@@ -29,7 +29,11 @@ export function totalCharged(state: LedgerState, upToDate: string) {
 }
 
 export function balance(state: LedgerState, upToDate: string) {
-  return totalPaidYtd(state, upToDate) - totalServiceYtd(state, upToDate);
+  const charged = totalCharged(state, upToDate);
+  const paid = totalPaidYtd(state, upToDate);
+  const service = totalServiceYtd(state, upToDate);
+  // Outstanding amount: what the business still owes you (can go negative if you are ahead).
+  return charged - paid - service;
 }
 
 function getStartOfYearStr(dateStr: string): string {
