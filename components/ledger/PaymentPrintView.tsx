@@ -216,7 +216,7 @@ export default function PaymentPrintView({
                   <p className="summary-label">Current Balance</p>
                   <p className="summary-value">KSh {Math.abs(currentBalance).toLocaleString()}</p>
                   <p className="text-xs mt-1">
-                    {isNetOut ? "Net outflow (YTD)" : "Net inflow (YTD)"}
+                    Net (YTD)
                   </p>
                 </div>
                 <div className="summary-item">
@@ -224,11 +224,11 @@ export default function PaymentPrintView({
                   <p className="summary-value">KSh {amountDue.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Total Paid (In, YTD)</p>
+                  <p className="summary-label">Inflow (YTD)</p>
                   <p className="summary-value">KSh {paid.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">
-                  <p className="summary-label">Total Service (Out, YTD)</p>
+                  <p className="summary-label">Outflow (YTD)</p>
                   <p className="summary-value">KSh {service.toLocaleString()}</p>
                 </div>
                 <div className="summary-item">

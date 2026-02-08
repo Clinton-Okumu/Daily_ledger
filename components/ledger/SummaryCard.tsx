@@ -34,7 +34,7 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Charged (YTD)</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Charged (YTD)</p>
               <p className="text-sm sm:text-lg font-bold">KSh {charged.toLocaleString()}</p>
             </div>
           </div>
@@ -45,7 +45,7 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
               <Wallet2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
             </div>
             <div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Paid (YTD)</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Inflow (YTD)</p>
               <p className="text-sm sm:text-lg font-bold">KSh {paid.toLocaleString()}</p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export default function SummaryCard({ ledger }: { ledger: LedgerState }) {
               <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Service (YTD)</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Outflow (YTD)</p>
               <p className="text-sm sm:text-lg font-bold">KSh {service.toLocaleString()}</p>
             </div>
           </div>
