@@ -1,13 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LedgerState } from "@/types/ledger";
 import { balance, totalPaid, totalService, totalCharged } from "@/lib/ledger";
-import { formatDate } from "@/lib/date";
+import { formatDate, parseDate } from "@/lib/date";
 import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase, AlertTriangle } from "lucide-react";
 import { getDayStatus } from "@/lib/status";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 
 interface PaymentPrintViewProps {
   ledger: LedgerState;
@@ -29,9 +28,11 @@ export default function PaymentPrintView({
   const charged = totalCharged(ledger, today);
   const amountDue = Math.max(0, charged - paid - service);
 
-  const sortedPayments = [...ledger.payments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const periodStartDate = new Date(sortedPayments[sortedPayments.length - 1]?.date ?? today);
-  const periodEndDate = new Date(today);
+  const sortedPayments = [...ledger.payments].sort(
+    (a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()
+  );
+  const periodStartDate = parseDate(sortedPayments[sortedPayments.length - 1]?.date ?? today);
+  const periodEndDate = parseDate(today);
   const periodLabel = `${periodStartDate.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -43,7 +44,7 @@ export default function PaymentPrintView({
   })}`;
 
   const groupedPayments = sortedPayments.reduce((map, payment) => {
-    const label = new Date(payment.date).toLocaleDateString("en-US", {
+    const label = parseDate(payment.date).toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
     });
@@ -271,7 +272,7 @@ export default function PaymentPrintView({
                           <div className="space-y-3">
                             {payments.map((payment) => {
                               const status = getDayStatus(ledger, payment.date);
-                              const date = new Date(payment.date);
+                               const date = parseDate(payment.date);
                               const isServicePayment = payment.type === "service";
                               const isServiceDay = payment.type === "service-day";
                               const isEmergencyDay = payment.type === "emergency";

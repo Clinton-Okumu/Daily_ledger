@@ -1,5 +1,5 @@
 import { LedgerState } from "@/types/ledger";
-import { formatDate } from "@/lib/date";
+import { formatDate, parseDate } from "@/lib/date";
 
 export function totalPaid(state: LedgerState) {
   return state.payments.filter(p => p.type === "daily-charge").reduce((sum, p) => sum + p.amount, 0);
@@ -10,14 +10,28 @@ export function totalService(state: LedgerState) {
 }
 
 export function totalCharged(state: LedgerState, upToDate: string) {
-  const start = new Date(state.payments[0]?.date ?? upToDate);
-  const end = new Date(upToDate);
+  const start = parseDate(getLedgerStartDateStr(state) ?? upToDate);
+  const end = parseDate(upToDate);
 
   return totalChargedInRange(state, start, end);
 }
 
 export function balance(state: LedgerState, upToDate: string) {
   return totalPaid(state) + totalService(state) - totalCharged(state, upToDate);
+}
+
+function getLedgerStartDateStr(state: LedgerState): string | null {
+  let minDateStr: string | null = null;
+  let minTime = Number.POSITIVE_INFINITY;
+  for (const payment of state.payments) {
+    const t = parseDate(payment.date).getTime();
+    if (!Number.isFinite(t)) continue;
+    if (t < minTime) {
+      minTime = t;
+      minDateStr = payment.date;
+    }
+  }
+  return minDateStr;
 }
 
 function hasNonChargeOverride(state: LedgerState, date: Date) {
