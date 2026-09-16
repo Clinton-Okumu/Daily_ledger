@@ -51,3 +51,14 @@ export function getDayPaymentTypes(
     .map((p) => p.type);
   return Array.from(new Set(types));
 }
+
+export function getDayNotes(ledger: LedgerState, date: string): string[] {
+  return ledger.payments
+    .filter((p) => p.date === date && Boolean(p.notes?.trim()))
+    .map((p) => p.notes!.trim());
+}
+
+export function hasDayNotes(ledger: LedgerState, date: string): boolean {
+  return ledger.payments.some((p) => p.date === date && Boolean(p.notes?.trim() || p.referenceCode?.trim()));
+}
+

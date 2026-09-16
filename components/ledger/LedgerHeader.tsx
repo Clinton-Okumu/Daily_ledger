@@ -1,7 +1,8 @@
-import { TrendingUp, CalendarDays } from "lucide-react";
+import { TrendingUp, CalendarDays, FileText } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 
-export default function LedgerHeader() {
+export default function LedgerHeader({ onOpenReports }: { onOpenReports?: () => void }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div className="space-y-2">
@@ -12,11 +13,20 @@ export default function LedgerHeader() {
           </h1>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Track daily charges, payments, and service fees in one place.
+          Track daily charges, payments, service fees, and day notes in one place.
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 border border-border/60 rounded-full">
+        {onOpenReports && (
+          <Button
+            onClick={onOpenReports}
+            className="gap-2 rounded-full h-10 px-4 shadow-sm"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="font-medium text-sm">Reports & Analytics</span>
+          </Button>
+        )}
+        <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-muted/50 border border-border/60 rounded-full">
           <TrendingUp className="w-5 h-5 text-primary" />
           <span className="text-sm font-medium">Smart Tracking</span>
         </div>
@@ -25,3 +35,4 @@ export default function LedgerHeader() {
     </div>
   );
 }
+

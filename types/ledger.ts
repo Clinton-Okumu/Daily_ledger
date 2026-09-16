@@ -5,9 +5,12 @@ export type Payment = {
   date: string;
   amount: number;
   type: PaymentType;
+  notes?: string;
+  referenceCode?: string;
 };
 
 export type LedgerState = {
   dailyCharge: number;
   payments: Payment[];
 };
+

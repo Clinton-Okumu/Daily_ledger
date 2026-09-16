@@ -54,3 +54,52 @@ export function downloadJSON(filename: string, content: string) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+export function exportToCSV(ledger: LedgerState, startDate?: string, endDate?: string): string {
+  let payments = [...ledger.payments].sort((a, b) => a.date.localeCompare(b.date));
+
+  if (startDate) {
+    payments = payments.filter((p) => p.date >= startDate);
+  }
+  if (endDate) {
+    payments = payments.filter((p) => p.date <= endDate);
+  }
+
+  const escapeCSV = (val: string | number | undefined) => {
+    if (val === undefined || val === null) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const headers = ["Date", "Type", "Inflow (KSh)", "Outflow (KSh)", "Reference Code", "Notes"];
+  const rows = payments.map((p) => {
+    const isInflow = p.type === "daily-charge" || p.type === "emergency";
+    const isOutflow = p.type === "service";
+    const inflow = isInflow ? (p.type === "emergency" && p.amount === 0 ? ledger.dailyCharge : p.amount) : 0;
+    const outflow = isOutflow ? p.amount : 0;
+
+    return [
+      escapeCSV(p.date),
+      escapeCSV(p.type),
+      escapeCSV(inflow),
+      escapeCSV(outflow),
+      escapeCSV(p.referenceCode || ""),
+      escapeCSV(p.notes || ""),
+    ].join(",");
+  });
+
+  return [headers.join(","), ...rows].join("\n");
+}
+
+export function downloadCSV(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+

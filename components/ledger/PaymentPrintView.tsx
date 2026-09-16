@@ -338,8 +338,19 @@ export default function PaymentPrintView({
                                           year: "numeric",
                                         })}
                                       </p>
+                                      {payment.referenceCode && (
+                                        <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                                          Ref: {payment.referenceCode}
+                                        </p>
+                                      )}
+                                      {payment.notes && (
+                                        <p className="text-xs text-slate-700 dark:text-slate-300 italic mt-0.5 max-w-sm">
+                                          &ldquo;{payment.notes}&rdquo;
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
+
 
                                   <div className="text-right">
                                      {isPaidDayOverride ? (

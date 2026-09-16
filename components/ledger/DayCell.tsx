@@ -8,6 +8,7 @@ import {
   getDayPayment,
   getDayPaymentTypes,
   getDayPayments,
+  hasDayNotes,
 } from "@/lib/status";
 import { LedgerState } from "@/types/ledger";
 import {
@@ -16,7 +17,9 @@ import {
   Clock,
   Coffee,
   Briefcase,
+  FileText,
 } from "lucide-react";
+
 
 export default function DayCell({
   date,
@@ -43,6 +46,7 @@ export default function DayCell({
   const hasServicePayment = paymentTypes.includes("service");
   const hasServiceDay = paymentTypes.includes("service-day");
   const hasEmergencyPayment = paymentTypes.includes("emergency");
+  const dayHasNotes = hasDayNotes(ledger, dateStr);
 
   const getStatusBadge = (status: DayStatus) => {
     switch (status) {
@@ -90,7 +94,14 @@ export default function DayCell({
       onClick={!isSunday ? onClick : undefined}
     >
       <div className="flex items-center justify-between w-full px-0.5 sm:px-1">
-        <span className="text-sm sm:text-base md:text-sm font-semibold leading-none">{date.getDate()}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-sm sm:text-base md:text-sm font-semibold leading-none">{date.getDate()}</span>
+          {mounted && dayHasNotes && (
+            <span title="Has notes" className="text-primary hover:text-primary/80">
+              <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+            </span>
+          )}
+        </div>
         {isSunday ? (
           <Badge variant="secondary" className="text-[9px] sm:text-[10px] md:text-xs gap-0.5 sm:gap-1 px-0.5 sm:px-1 md:px-2 py-0">
             <Coffee className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
@@ -137,3 +148,4 @@ export default function DayCell({
     </Button>
   );
 }
+

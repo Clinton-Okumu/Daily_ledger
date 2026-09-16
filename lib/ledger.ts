@@ -134,3 +134,123 @@ export function totalServiceInRange(
 export function dailyIncome(state: LedgerState, dateStr: string) {
   return dailyIncomeForDate(state, dateStr);
 }
+
+export type DayReportItem = {
+  date: string;
+  isSunday: boolean;
+  isChargeable: boolean;
+  hasServiceDay: boolean;
+  hasEmergency: boolean;
+  dailyChargeDue: number;
+  inflow: number;
+  outflow: number;
+  payments: LedgerState["payments"];
+  notes: string[];
+};
+
+export type RangeReportSummary = {
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  chargeableDays: number;
+  serviceDaysCount: number;
+  emergencyDaysCount: number;
+  paidDaysCount: number;
+  partialDaysCount: number;
+  unpaidDaysCount: number;
+  totalCharged: number;
+  totalInflow: number;
+  totalOutflow: number;
+  netCashflow: number;
+  balanceForPeriod: number;
+  items: DayReportItem[];
+};
+
+export function getReportForRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+): RangeReportSummary {
+  const items: DayReportItem[] = [];
+  const current = new Date(startDate);
+  current.setHours(0, 0, 0, 0);
+  const endNormalized = new Date(endDate);
+  endNormalized.setHours(23, 59, 59, 999);
+
+  let chargeableDays = 0;
+  let serviceDaysCount = 0;
+  let emergencyDaysCount = 0;
+  let paidDaysCount = 0;
+  let partialDaysCount = 0;
+  let unpaidDaysCount = 0;
+
+  while (current <= endNormalized) {
+    const dateStr = formatDate(current);
+    const isSunday = current.getDay() === 0;
+    const isServiceDay = hasNonChargeOverride(state, current);
+    const dayPayments = state.payments.filter((p) => p.date === dateStr);
+    const hasEmergency = dayPayments.some((p) => p.type === "emergency");
+    const isChargeable = !isSunday && !isServiceDay;
+
+    if (isServiceDay) serviceDaysCount++;
+    if (hasEmergency) emergencyDaysCount++;
+    if (isChargeable) chargeableDays++;
+
+    const inflow = dailyIncomeForDate(state, dateStr);
+    const outflow = dayPayments
+      .filter((p) => p.type === "service")
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const notes = dayPayments
+      .filter((p) => Boolean(p.notes?.trim()))
+      .map((p) => p.notes!.trim());
+
+    if (isChargeable) {
+      if (inflow >= state.dailyCharge) {
+        paidDaysCount++;
+      } else if (inflow > 0) {
+        partialDaysCount++;
+      } else {
+        unpaidDaysCount++;
+      }
+    }
+
+    items.push({
+      date: dateStr,
+      isSunday,
+      isChargeable,
+      hasServiceDay: isServiceDay,
+      hasEmergency,
+      dailyChargeDue: isChargeable ? state.dailyCharge : 0,
+      inflow,
+      outflow,
+      payments: dayPayments,
+      notes,
+    });
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  const charged = totalChargedInRange(state, startDate, endDate);
+  const paid = totalPaidInRange(state, startDate, endDate);
+  const service = totalServiceInRange(state, startDate, endDate);
+
+  return {
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate),
+    totalDays: items.length,
+    chargeableDays,
+    serviceDaysCount,
+    emergencyDaysCount,
+    paidDaysCount,
+    partialDaysCount,
+    unpaidDaysCount,
+    totalCharged: charged,
+    totalInflow: paid,
+    totalOutflow: service,
+    netCashflow: paid - service,
+    balanceForPeriod: charged - paid - service,
+    items,
+  };
+}
+

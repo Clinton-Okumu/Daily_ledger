@@ -8,6 +8,8 @@ import { LedgerState, PaymentType } from "@/types/ledger";
 import { formatDate } from "@/lib/date";
 import { Wallet2, Trash2, X, CheckCircle2, Calendar, Briefcase, AlertTriangle } from "lucide-react";
 
+import { Textarea } from "@/components/ui/textarea";
+
 interface PaymentEditorProps {
   date: Date;
   ledger: LedgerState;
@@ -24,9 +26,9 @@ export default function PaymentEditor({
   const dateStr = formatDate(date);
   const dayPayments = ledger.payments.filter((p) => p.date === dateStr);
   const [amount, setAmount] = useState<string>("");
-  const [type, setType] = useState<PaymentType>(
-    "daily-charge"
-  );
+  const [type, setType] = useState<PaymentType>("daily-charge");
+  const [notes, setNotes] = useState<string>("");
+  const [referenceCode, setReferenceCode] = useState<string>("");
 
   if (!date) return null;
 
@@ -35,7 +37,7 @@ export default function PaymentEditor({
     const isPaidDayType = type === "service-day" || type === "emergency";
     const numAmount = isPaidDayType ? 0 : parseFloat(amount) || 0;
 
-    if (!isPaidDayType && numAmount === 0) {
+    if (!isPaidDayType && numAmount === 0 && !notes.trim()) {
       return;
     }
 
@@ -46,27 +48,32 @@ export default function PaymentEditor({
         date: dateStr,
         amount: numAmount,
         type,
+        notes: notes.trim() ? notes.trim() : undefined,
+        referenceCode: referenceCode.trim() ? referenceCode.trim() : undefined,
       },
     ];
 
     onSave({ ...ledger, payments: updatedPayments });
     setAmount("");
+    setNotes("");
+    setReferenceCode("");
     setType("daily-charge");
   };
 
   const handleDelete = (id: string) => {
     const updatedPayments = ledger.payments.filter((p) => p.id !== id);
     onSave({ ...ledger, payments: updatedPayments });
-    setAmount("");
-    setType("daily-charge");
   };
 
   const handleDeleteDay = () => {
     const updatedPayments = ledger.payments.filter((p) => p.date !== dateStr);
     onSave({ ...ledger, payments: updatedPayments });
     setAmount("");
+    setNotes("");
+    setReferenceCode("");
     setType("daily-charge");
   };
+
 
   const hasPayments = dayPayments.length > 0;
   const isPaidDayType = type === "service-day" || type === "emergency";
@@ -177,52 +184,100 @@ export default function PaymentEditor({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="amount" className="text-base font-medium">
-              Amount (KSh)
-            </Label>
-            <div className="relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="amount" className="text-base font-medium">
+                Amount (KSh)
+              </Label>
+              <div className="relative">
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder={isPaidDayType ? "0" : "300"}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  autoFocus
+                  disabled={isPaidDayType}
+                  className="text-lg h-12 pl-4 pr-12"
+                />
+                {amount && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
+                    KSh
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="referenceCode" className="text-base font-medium">
+                Reference Code <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
               <Input
-                id="amount"
-                type="number"
-                placeholder="300"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                autoFocus
-                disabled={isPaidDayType}
-                className="text-lg h-12 pl-4 pr-12"
+                id="referenceCode"
+                placeholder="e.g. M-Pesa RK729..."
+                value={referenceCode}
+                onChange={(e) => setReferenceCode(e.target.value)}
+                className="h-12"
               />
-              {amount && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
-                  KSh
-                </span>
-              )}
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-base font-medium">
+              Notes & Remarks <span className="text-xs text-muted-foreground font-normal">({type === "service" ? "Service details" : type === "emergency" ? "Emergency reason" : "Optional notes"})</span>
+            </Label>
+            <Textarea
+              id="notes"
+              placeholder={
+                type === "service"
+                  ? "e.g. Full engine service, oil filter replacement, brake pads..."
+                  : type === "emergency"
+                  ? "e.g. Breakdown on highway, driver emergency medical leave..."
+                  : type === "service-day"
+                  ? "e.g. Bike in garage for planned maintenance..."
+                  : "e.g. Half-day payment, agreed balance to clear tomorrow..."
+              }
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-20"
+            />
+          </div>
+
           {dayPayments.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">
-                Entries for this day
+                Recorded for this day ({dayPayments.length})
               </p>
-              <div className="space-y-2">
+              <div className="space-y-2.5 max-h-52 overflow-y-auto pr-1">
                 {dayPayments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex items-center justify-between rounded-lg border px-3 py-2"
+                    className="flex items-start justify-between rounded-lg border bg-muted/30 p-3 gap-2"
                   >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {formatTypeLabel(payment.type)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatAmountLabel(payment)}
-                      </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold">
+                          {formatTypeLabel(payment.type)}
+                        </p>
+                        <span className="text-xs font-bold text-primary">
+                          {formatAmountLabel(payment)}
+                        </span>
+                      </div>
+                      {payment.referenceCode && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          Ref: {payment.referenceCode}
+                        </p>
+                      )}
+                      {payment.notes && (
+                        <p className="text-xs text-foreground/80 bg-background/60 rounded px-2 py-1 border border-border/40 mt-1 italic">
+                          &ldquo;{payment.notes}&rdquo;
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(payment.id)}
-                      className="h-8 w-8"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -232,15 +287,16 @@ export default function PaymentEditor({
             </div>
           )}
           <div className="flex gap-3">
-            <Button onClick={handleSave} className="flex-1 gap-2 h-12">
+            <Button onClick={handleSave} className="flex-1 gap-2 h-12 font-medium">
               <CheckCircle2 className="w-5 h-5" />
-              Save Payment
+              Save Entry
             </Button>
             <Button
               onClick={handleDeleteDay}
               variant="destructive"
               disabled={!hasPayments}
               className="h-12 px-4"
+              title="Clear all entries for this day"
             >
               <Trash2 className="w-5 h-5" />
             </Button>
@@ -250,3 +306,4 @@ export default function PaymentEditor({
     </div>
   );
 }
+

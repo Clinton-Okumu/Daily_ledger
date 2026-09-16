@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LedgerState } from "@/types/ledger";
-import { exportToJSON, importFromJSON, downloadJSON } from "@/lib/backup";
-import { FileDown, FileUp, Database, ShieldCheck, Printer, Cloud, RefreshCw } from "lucide-react";
+import { exportToJSON, importFromJSON, downloadJSON, exportToCSV, downloadCSV } from "@/lib/backup";
+import { FileDown, FileUp, Database, ShieldCheck, Printer, Cloud, RefreshCw, FileSpreadsheet, FileText } from "lucide-react";
 import { useState } from "react";
 import PaymentPrintView from "./PaymentPrintView";
 
@@ -15,7 +15,9 @@ interface DataActionsProps {
   cloudStatus: "off" | "loading" | "ready" | "saving" | "error";
   onCloudKeyChange: (key: string) => void;
   onCloudSyncNow: () => void;
+  onOpenReports?: () => void;
 }
+
 
 export default function DataActions({
   onLedgerChange,
@@ -24,6 +26,7 @@ export default function DataActions({
   cloudStatus,
   onCloudKeyChange,
   onCloudSyncNow,
+  onOpenReports,
 }: DataActionsProps) {
   const [showPrintView, setShowPrintView] = useState(false);
 
@@ -31,6 +34,12 @@ export default function DataActions({
     const data = exportToJSON();
     const date = new Date().toISOString().split("T")[0];
     downloadJSON(`ledger-backup-${date}.json`, data);
+  };
+
+  const handleExportCSV = () => {
+    const data = exportToCSV(ledger);
+    const date = new Date().toISOString().split("T")[0];
+    downloadCSV(`ledger-export-${date}.csv`, data);
   };
 
   const handleImport = () => {
@@ -114,20 +123,35 @@ export default function DataActions({
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={handleExport} className="flex-1 gap-2 h-12">
-              <FileDown className="w-5 h-5" />
-              Export Backup
+          {onOpenReports && (
+            <Button onClick={onOpenReports} className="w-full gap-2 h-12 shadow-sm font-medium">
+              <FileText className="w-5 h-5" />
+              Weekly / Monthly Reports
             </Button>
-            <Button onClick={handleImport} variant="outline" className="flex-1 gap-2 h-12">
-              <FileUp className="w-5 h-5" />
-              Import Backup
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={handleExport} variant="outline" className="flex-1 gap-2 h-11">
+              <FileDown className="w-4 h-4" />
+              Backup JSON
+            </Button>
+            <Button onClick={handleExportCSV} variant="outline" className="flex-1 gap-2 h-11">
+              <FileSpreadsheet className="w-4 h-4" />
+              Export CSV
             </Button>
           </div>
-          <Button onClick={handlePrint} variant="secondary" className="w-full gap-2 h-12">
-            <Printer className="w-5 h-5" />
-            Print Payment Statement
-          </Button>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={handleImport} variant="outline" className="flex-1 gap-2 h-11">
+              <FileUp className="w-4 h-4" />
+              Restore Backup
+            </Button>
+            <Button onClick={handlePrint} variant="secondary" className="flex-1 gap-2 h-11">
+              <Printer className="w-4 h-4" />
+              Statement
+            </Button>
+          </div>
+
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
             <ShieldCheck className="w-4 h-4" />
             <span>Export your data regularly to prevent loss</span>
@@ -145,3 +169,4 @@ export default function DataActions({
     </>
   );
 }
+

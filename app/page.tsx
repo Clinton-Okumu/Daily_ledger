@@ -11,12 +11,15 @@ import CalendarView from "@/components/ledger/CalendarView";
 import SummaryCard from "@/components/ledger/SummaryCard";
 import DataActions from "@/components/ledger/DataActions";
 import MonthlyTotalsCard from "@/components/ledger/MonthlyTotalsCard";
+import ReportsView from "@/components/ledger/ReportsView";
 
 export default function Page() {
   const [ledger, setLedger] = useState<LedgerState>({ dailyCharge: 300, payments: [] });
   const [hydrated, setHydrated] = useState(false);
   const [cloudKey, setCloudKey] = useState<string>("");
   const [cloudStatus, setCloudStatus] = useState<"off" | "loading" | "ready" | "saving" | "error">("off");
+  const [showReports, setShowReports] = useState(false);
+
 
   const looksLikeEmptyCloud = (state: LedgerState) =>
     state.dailyCharge === 300 && state.payments.length === 0;
@@ -120,7 +123,7 @@ export default function Page() {
         <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-muted/40 blur-2xl" />
       </div>
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 space-y-6 sm:space-y-8 py-8 sm:py-12">
-        <LedgerHeader />
+        <LedgerHeader onOpenReports={() => setShowReports(true)} />
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-12">
           <div className="lg:col-span-12">
             <BalanceCard ledger={ledger} />
@@ -142,10 +145,19 @@ export default function Page() {
               cloudStatus={cloudStatus}
               onCloudKeyChange={handleCloudKeyChange}
               onCloudSyncNow={handleCloudSyncNow}
+              onOpenReports={() => setShowReports(true)}
             />
           </div>
         </div>
       </div>
+
+      {showReports && (
+        <ReportsView
+          ledger={ledger}
+          onClose={() => setShowReports(false)}
+        />
+      )}
     </main>
   );
 }
+
