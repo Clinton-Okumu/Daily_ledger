@@ -16,14 +16,14 @@ export default function LedgerHeader({ onOpenReports }: { onOpenReports?: () => 
           Track daily charges, payments, service fees, and day notes in one place.
         </p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
         {onOpenReports && (
           <Button
             onClick={onOpenReports}
-            className="gap-2 rounded-full h-10 px-4 shadow-sm"
+            className="gap-2 rounded-full h-10 px-3.5 sm:px-4 shadow-sm flex-1 sm:flex-initial justify-center text-xs sm:text-sm font-medium"
           >
-            <FileText className="w-4 h-4" />
-            <span className="font-medium text-sm">Reports & Analytics</span>
+            <FileText className="w-4 h-4 shrink-0" />
+            <span>Reports & Analytics</span>
           </Button>
         )}
         <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-muted/50 border border-border/60 rounded-full">

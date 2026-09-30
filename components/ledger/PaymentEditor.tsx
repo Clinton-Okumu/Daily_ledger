@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,14 @@ export default function PaymentEditor({
   const [serviceImpact, setServiceImpact] = useState<ServiceImpact>("none");
   const [notes, setNotes] = useState<string>("");
   const [referenceCode, setReferenceCode] = useState<string>("");
+
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   if (!date) return null;
 
@@ -129,29 +137,29 @@ export default function PaymentEditor({
 
   return (
     <div
-      className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 animate-in fade-in duration-200 overflow-y-auto overscroll-contain"
       onClick={onCancel}
     >
       <Card
-        className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh] flex flex-col overflow-hidden my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <CardHeader>
+        <CardHeader className="shrink-0 p-4 sm:p-6 pb-3 border-b bg-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Wallet2 className="w-5 h-5 text-primary" />
-              <CardTitle>Edit Payment</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Edit Payment</CardTitle>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={onCancel}
-              className="h-8 w-8"
+              className="h-8 w-8 rounded-full"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {date.toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -160,13 +168,13 @@ export default function PaymentEditor({
             })}
           </p>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 overscroll-contain">
           <div className="space-y-2">
-            <Label htmlFor="type" className="text-base font-medium">
+            <Label htmlFor="type" className="text-sm sm:text-base font-medium">
               Payment Type
             </Label>
             <Select value={type} onValueChange={handleTypeChange}>
-              <SelectTrigger id="type" className="h-12">
+              <SelectTrigger id="type" className="h-11 sm:h-12">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -199,7 +207,7 @@ export default function PaymentEditor({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="amount" className="text-base font-medium">
+              <Label htmlFor="amount" className="text-sm sm:text-base font-medium">
                 Amount (KSh)
               </Label>
               <div className="relative">
@@ -209,9 +217,8 @@ export default function PaymentEditor({
                   placeholder={isPaidDayType ? "0" : "300"}
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  autoFocus
                   disabled={isPaidDayType}
-                  className="text-lg h-12 pl-4 pr-12"
+                  className="text-base sm:text-lg h-11 sm:h-12 pl-4 pr-12"
                 />
                 {amount && (
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
@@ -221,7 +228,7 @@ export default function PaymentEditor({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="referenceCode" className="text-base font-medium">
+              <Label htmlFor="referenceCode" className="text-sm sm:text-base font-medium">
                 Reference Code <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
               </Label>
               <Input
@@ -229,7 +236,7 @@ export default function PaymentEditor({
                 placeholder="e.g. M-Pesa RK729..."
                 value={referenceCode}
                 onChange={(e) => setReferenceCode(e.target.value)}
-                className="h-12"
+                className="h-11 sm:h-12 text-sm"
               />
             </div>
           </div>
@@ -284,7 +291,7 @@ export default function PaymentEditor({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-base font-medium">
+            <Label htmlFor="notes" className="text-sm sm:text-base font-medium">
               Notes & Remarks <span className="text-xs text-muted-foreground font-normal">({type === "service" ? "Service details" : type === "emergency" ? "Emergency reason" : "Optional notes"})</span>
             </Label>
             <Textarea
@@ -300,7 +307,7 @@ export default function PaymentEditor({
               }
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="min-h-20"
+              className="min-h-20 text-sm"
             />
           </div>
 
@@ -309,14 +316,14 @@ export default function PaymentEditor({
               <p className="text-sm font-medium text-muted-foreground">
                 Recorded for this day ({dayPayments.length})
               </p>
-              <div className="space-y-2.5 max-h-52 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1 overscroll-contain">
                 {dayPayments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex items-start justify-between rounded-lg border bg-muted/30 p-3 gap-2"
+                    className="flex items-start justify-between rounded-lg border bg-muted/30 p-2.5 sm:p-3 gap-2"
                   >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold">
                           {formatTypeLabel(payment.type)}
                           {payment.type === "service" && (
@@ -339,7 +346,7 @@ export default function PaymentEditor({
                         </p>
                       )}
                       {payment.notes && (
-                        <p className="text-xs text-foreground/80 bg-background/60 rounded px-2 py-1 border border-border/40 mt-1 italic">
+                        <p className="text-xs text-foreground/80 bg-background/60 rounded px-2 py-1 border border-border/40 mt-1 italic break-words">
                           &ldquo;{payment.notes}&rdquo;
                         </p>
                       )}
@@ -357,22 +364,22 @@ export default function PaymentEditor({
               </div>
             </div>
           )}
-          <div className="flex gap-3">
-            <Button onClick={handleSave} className="flex-1 gap-2 h-12 font-medium">
-              <CheckCircle2 className="w-5 h-5" />
-              Save Entry
-            </Button>
-            <Button
-              onClick={handleDeleteDay}
-              variant="destructive"
-              disabled={!hasPayments}
-              className="h-12 px-4"
-              title="Clear all entries for this day"
-            >
-              <Trash2 className="w-5 h-5" />
-            </Button>
-          </div>
         </CardContent>
+        <div className="shrink-0 p-3 sm:p-4 border-t bg-card/95 backdrop-blur-xs flex gap-2 sm:gap-3">
+          <Button onClick={handleSave} className="flex-1 gap-2 h-11 sm:h-12 font-medium">
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            Save Entry
+          </Button>
+          <Button
+            onClick={handleDeleteDay}
+            variant="destructive"
+            disabled={!hasPayments}
+            className="h-11 sm:h-12 px-3 sm:px-4"
+            title="Clear all entries for this day"
+          >
+            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+        </div>
       </Card>
     </div>
   );

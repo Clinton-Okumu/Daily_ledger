@@ -86,7 +86,7 @@ export default function DayCell({
     <Button
       variant="ghost"
       disabled={isSunday}
-      className={`h-16 sm:h-24 md:h-28 w-full aspect-square flex-col space-y-0.5 sm:space-y-1.5 md:space-y-2 relative transition-all duration-200 hover:scale-105 rounded-md md:rounded-lg ${
+      className={`min-h-[4rem] sm:min-h-[5.5rem] md:min-h-[6.5rem] h-auto w-full p-1 sm:p-1.5 md:p-2 flex-col justify-between relative transition-all duration-150 active:scale-95 sm:hover:scale-105 rounded-md md:rounded-lg ${
         today
           ? "border-2 border-primary bg-primary/5 shadow-md"
           : "hover:bg-muted/50"
@@ -140,9 +140,9 @@ export default function DayCell({
         ) : null}
       </div>
       {mounted && paymentAmount > 0 && (
-        <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-[9px] sm:text-[10px] md:text-xs font-medium text-muted-foreground leading-tight">
-          <span className="hidden sm:inline">KSh</span>
-          <span className="truncate">{paymentAmount.toLocaleString()}</span>
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-semibold text-primary leading-tight w-full truncate">
+          <span className="hidden sm:inline text-muted-foreground text-[10px]">KSh</span>
+          <span>{paymentAmount.toLocaleString()}</span>
         </div>
       )}
     </Button>

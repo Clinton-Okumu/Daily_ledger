@@ -130,25 +130,25 @@ export default function DataActions({
             </Button>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={handleExport} variant="outline" className="flex-1 gap-2 h-11">
-              <FileDown className="w-4 h-4" />
-              Backup JSON
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Button onClick={handleExport} variant="outline" className="gap-1.5 sm:gap-2 h-10 sm:h-11 text-xs sm:text-sm px-2 sm:px-3">
+              <FileDown className="w-4 h-4 shrink-0" />
+              <span className="truncate">Backup JSON</span>
             </Button>
-            <Button onClick={handleExportCSV} variant="outline" className="flex-1 gap-2 h-11">
-              <FileSpreadsheet className="w-4 h-4" />
-              Export CSV
+            <Button onClick={handleExportCSV} variant="outline" className="gap-1.5 sm:gap-2 h-10 sm:h-11 text-xs sm:text-sm px-2 sm:px-3">
+              <FileSpreadsheet className="w-4 h-4 shrink-0" />
+              <span className="truncate">Export CSV</span>
             </Button>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={handleImport} variant="outline" className="flex-1 gap-2 h-11">
-              <FileUp className="w-4 h-4" />
-              Restore Backup
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Button onClick={handleImport} variant="outline" className="gap-1.5 sm:gap-2 h-10 sm:h-11 text-xs sm:text-sm px-2 sm:px-3">
+              <FileUp className="w-4 h-4 shrink-0" />
+              <span className="truncate">Restore</span>
             </Button>
-            <Button onClick={handlePrint} variant="secondary" className="flex-1 gap-2 h-11">
-              <Printer className="w-4 h-4" />
-              Statement
+            <Button onClick={handlePrint} variant="secondary" className="gap-1.5 sm:gap-2 h-10 sm:h-11 text-xs sm:text-sm px-2 sm:px-3">
+              <Printer className="w-4 h-4 shrink-0" />
+              <span className="truncate">Statement</span>
             </Button>
           </div>
 

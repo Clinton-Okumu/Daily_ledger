@@ -122,7 +122,7 @@ export default function Page() {
         <div className="absolute right-[-10%] top-16 h-64 w-64 rounded-full bg-primary/15 blur-3xl" />
         <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-muted/40 blur-2xl" />
       </div>
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 space-y-6 sm:space-y-8 py-8 sm:py-12">
+      <div className="relative mx-auto max-w-6xl px-3 sm:px-6 space-y-4 sm:space-y-8 py-4 sm:py-12">
         <LedgerHeader onOpenReports={() => setShowReports(true)} />
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-12">
           <div className="lg:col-span-12">

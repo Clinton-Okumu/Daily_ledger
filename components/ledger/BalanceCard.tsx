@@ -79,9 +79,13 @@ export default function BalanceCard({ ledger }: { ledger: LedgerState }) {
               </p>
             )}
             {mounted && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">
-                Charged: KSh {displayCharged.toLocaleString()}  Paid: KSh {displayInflow.toLocaleString()}  Service: KSh {displayOutflow.toLocaleString()}
-              </p>
+              <div className="flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-3 gap-y-1 text-[11px] sm:text-xs text-muted-foreground font-medium pt-1">
+                <span>Charged: <strong className="text-foreground">KSh {displayCharged.toLocaleString()}</strong></span>
+                <span className="text-muted-foreground/40">•</span>
+                <span>Paid: <strong className="text-green-600 dark:text-green-500 font-semibold">KSh {displayInflow.toLocaleString()}</strong></span>
+                <span className="text-muted-foreground/40">•</span>
+                <span>Service: <strong className="text-orange-600 dark:text-orange-500 font-semibold">KSh {displayOutflow.toLocaleString()}</strong></span>
+              </div>
             )}
           </div>
           <div className="flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-muted-foreground">

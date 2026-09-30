@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { LedgerState } from "@/types/ledger";
 import { getReportForRange, RangeReportSummary } from "@/lib/ledger";
 import { formatDate, parseDate } from "@/lib/date";
@@ -39,6 +39,14 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
   const [filterType, setFilterType] = useState<"all" | "notes-only" | "service-only" | "emergency-only">("all");
 
   const today = useMemo(() => new Date(), []);
+
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   // Compute dates based on preset
   const defaultDates = useMemo(() => {
@@ -133,13 +141,19 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-200">
-      <Card className="w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-border/70">
+    <div
+      className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-200 overflow-y-auto overscroll-contain"
+      onClick={onClose}
+    >
+      <Card
+        className="w-full max-w-5xl max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-border/70 my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <CardHeader className="p-4 sm:p-6 border-b shrink-0 bg-muted/20">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
                 <FileText className="w-6 h-6" />
               </div>
               <div>
@@ -167,7 +181,7 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
           </div>
 
           {/* Date Range Selector */}
-          <div className="flex flex-wrap items-center gap-2 pt-3">
+          <div className="flex items-center gap-1.5 pt-3 overflow-x-auto pb-1 sm:flex-wrap sm:pb-0 shrink-0">
             {(
               [
                 { id: "this-week", label: "This Week" },
@@ -183,7 +197,7 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
                 variant={preset === tab.id ? "default" : "secondary"}
                 size="sm"
                 onClick={() => handlePresetChange(tab.id)}
-                className="text-xs h-8 px-3 rounded-lg"
+                className="text-xs h-8 px-3 rounded-lg shrink-0"
               >
                 {tab.label}
               </Button>
@@ -218,7 +232,7 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
         </CardHeader>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 overscroll-contain">
           {/* Summary Cards Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {/* Inflows */}
@@ -397,8 +411,8 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <span className="font-bold text-sm sm:text-base">
                             {dayName}, {dateFormatted}
                           </span>
@@ -498,13 +512,13 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-muted/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div>
+        <div className="p-3 sm:p-4 border-t bg-card/95 backdrop-blur-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-muted-foreground shrink-0">
+          <div className="text-center sm:text-left">
             Period: <span className="font-semibold text-foreground">{startDateStr}</span> to{" "}
-            <span className="font-semibold text-foreground">{endDateStr}</span> • Net Balance Impact:{" "}
+            <span className="font-semibold text-foreground">{endDateStr}</span> • Net:{" "}
             <span className="font-semibold text-foreground">KSh {report.balanceForPeriod.toLocaleString()}</span>
           </div>
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto h-8 text-xs">
             Close Report
           </Button>
         </div>

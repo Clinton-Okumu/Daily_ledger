@@ -14,7 +14,7 @@ import {
 import { formatDate, parseDate } from "@/lib/date";
 import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase, AlertTriangle } from "lucide-react";
 import { getDayStatus } from "@/lib/status";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 interface PaymentPrintViewProps {
   ledger: LedgerState;
@@ -39,6 +39,14 @@ export default function PaymentPrintView({
   const deductions = serviceDeductionInRange(ledger, startOfYear, todayDate);
   const additions = serviceAdditionInRange(ledger, startOfYear, todayDate);
   const amountDue = Math.max(0, charged + additions - paid - deductions);
+
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   const sortedPayments = [...ledger.payments].sort(
     (a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()
@@ -189,25 +197,31 @@ export default function PaymentPrintView({
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden bg-background rounded-lg shadow-2xl flex flex-col">
-        <div className="p-6 border-b flex items-center justify-between">
+    <div
+      className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh] overflow-hidden bg-background rounded-xl shadow-2xl flex flex-col my-auto border border-border/70"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-4 sm:p-6 border-b flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold">Payment Statement</h2>
+            <h2 className="text-base sm:text-lg font-semibold">Payment Statement</h2>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handlePrint} className="gap-2">
+            <Button onClick={handlePrint} size="sm" className="gap-2 text-xs sm:text-sm">
               <Printer className="w-4 h-4" />
               Print
             </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 sm:h-9 sm:w-9">
               <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6" ref={printRef}>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 overscroll-contain" ref={printRef}>
           <div id="printable-content">
             <div className="space-y-6">
               <div className="text-center mb-8">
