@@ -71,16 +71,18 @@ export function exportToCSV(ledger: LedgerState, startDate?: string, endDate?: s
     return `"${str}"`;
   };
 
-  const headers = ["Date", "Type", "Inflow (KSh)", "Outflow (KSh)", "Reference Code", "Notes"];
+  const headers = ["Date", "Type", "Service Impact", "Inflow (KSh)", "Outflow (KSh)", "Reference Code", "Notes"];
   const rows = payments.map((p) => {
     const isInflow = p.type === "daily-charge" || p.type === "emergency";
     const isOutflow = p.type === "service";
     const inflow = isInflow ? (p.type === "emergency" && p.amount === 0 ? ledger.dailyCharge : p.amount) : 0;
     const outflow = isOutflow ? p.amount : 0;
+    const impact = p.type === "service" ? (p.serviceImpact || "deduct") : "";
 
     return [
       escapeCSV(p.date),
       escapeCSV(p.type),
+      escapeCSV(impact),
       escapeCSV(inflow),
       escapeCSV(outflow),
       escapeCSV(p.referenceCode || ""),

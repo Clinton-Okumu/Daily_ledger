@@ -29,11 +29,14 @@ export function totalCharged(state: LedgerState, upToDate: string) {
 }
 
 export function balance(state: LedgerState, upToDate: string) {
+  const start = parseDate(getStartOfYearStr(upToDate));
+  const end = parseDate(upToDate);
   const charged = totalCharged(state, upToDate);
   const paid = totalPaidYtd(state, upToDate);
-  const service = totalServiceYtd(state, upToDate);
+  const deductions = serviceDeductionInRange(state, start, end);
+  const additions = serviceAdditionInRange(state, start, end);
   // Outstanding amount: what the business still owes you (can go negative if you are ahead).
-  return charged - paid - service;
+  return charged + additions - paid - deductions;
 }
 
 function getStartOfYearStr(dateStr: string): string {
@@ -126,6 +129,57 @@ export function totalServiceInRange(
     .filter(
       (payment) =>
         payment.type === "service" &&
+        isDateInRange(payment.date, startTime, endTime)
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
+}
+
+export function serviceDeductionInRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+) {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+  return state.payments
+    .filter(
+      (payment) =>
+        payment.type === "service" &&
+        (payment.serviceImpact === "deduct" || payment.serviceImpact === undefined) &&
+        isDateInRange(payment.date, startTime, endTime)
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
+}
+
+export function serviceAdditionInRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+) {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+  return state.payments
+    .filter(
+      (payment) =>
+        payment.type === "service" &&
+        payment.serviceImpact === "add" &&
+        isDateInRange(payment.date, startTime, endTime)
+    )
+    .reduce((sum, payment) => sum + payment.amount, 0);
+}
+
+export function serviceReferenceInRange(
+  state: LedgerState,
+  startDate: Date,
+  endDate: Date
+) {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+  return state.payments
+    .filter(
+      (payment) =>
+        payment.type === "service" &&
+        payment.serviceImpact === "none" &&
         isDateInRange(payment.date, startTime, endTime)
     )
     .reduce((sum, payment) => sum + payment.amount, 0);
@@ -234,6 +288,8 @@ export function getReportForRange(
   const charged = totalChargedInRange(state, startDate, endDate);
   const paid = totalPaidInRange(state, startDate, endDate);
   const service = totalServiceInRange(state, startDate, endDate);
+  const deductions = serviceDeductionInRange(state, startDate, endDate);
+  const additions = serviceAdditionInRange(state, startDate, endDate);
 
   return {
     startDate: formatDate(startDate),
@@ -249,7 +305,7 @@ export function getReportForRange(
     totalInflow: paid,
     totalOutflow: service,
     netCashflow: paid - service,
-    balanceForPeriod: charged - paid - service,
+    balanceForPeriod: charged + additions - paid - deductions,
     items,
   };
 }

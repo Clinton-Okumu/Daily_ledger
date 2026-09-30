@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LedgerState } from "@/types/ledger";
-import { totalChargedInRange, totalPaidInRange, totalServiceInRange } from "@/lib/ledger";
+import {
+  totalChargedInRange,
+  totalPaidInRange,
+  totalServiceInRange,
+  serviceDeductionInRange,
+  serviceAdditionInRange,
+} from "@/lib/ledger";
 import { AlertTriangle, Briefcase, CalendarDays, Wallet2 } from "lucide-react";
 
 export default function MonthlyTotalsCard({ ledger }: { ledger: LedgerState }) {
@@ -20,7 +26,9 @@ export default function MonthlyTotalsCard({ ledger }: { ledger: LedgerState }) {
   const due = totalChargedInRange(ledger, startOfMonth, today);
   const paid = totalPaidInRange(ledger, startOfMonth, today);
   const service = totalServiceInRange(ledger, startOfMonth, today);
-  const outstanding = Math.max(0, due - paid - service);
+  const deductions = serviceDeductionInRange(ledger, startOfMonth, today);
+  const additions = serviceAdditionInRange(ledger, startOfMonth, today);
+  const outstanding = Math.max(0, due + additions - paid - deductions);
 
   return (
     <Card>

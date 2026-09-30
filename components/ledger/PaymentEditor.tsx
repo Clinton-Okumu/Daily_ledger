@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LedgerState, PaymentType } from "@/types/ledger";
+import { LedgerState, PaymentType, Payment, ServiceImpact } from "@/types/ledger";
 import { formatDate } from "@/lib/date";
 import { Wallet2, Trash2, X, CheckCircle2, Calendar, Briefcase, AlertTriangle } from "lucide-react";
 
@@ -27,6 +27,7 @@ export default function PaymentEditor({
   const dayPayments = ledger.payments.filter((p) => p.date === dateStr);
   const [amount, setAmount] = useState<string>("");
   const [type, setType] = useState<PaymentType>("daily-charge");
+  const [serviceImpact, setServiceImpact] = useState<ServiceImpact>("none");
   const [notes, setNotes] = useState<string>("");
   const [referenceCode, setReferenceCode] = useState<string>("");
 
@@ -41,13 +42,14 @@ export default function PaymentEditor({
       return;
     }
 
-    const updatedPayments = [
+    const updatedPayments: Payment[] = [
       ...ledger.payments,
       {
         id: crypto.randomUUID(),
         date: dateStr,
         amount: numAmount,
         type,
+        serviceImpact: type === "service" ? serviceImpact : undefined,
         notes: notes.trim() ? notes.trim() : undefined,
         referenceCode: referenceCode.trim() ? referenceCode.trim() : undefined,
       },
@@ -58,6 +60,7 @@ export default function PaymentEditor({
     setNotes("");
     setReferenceCode("");
     setType("daily-charge");
+    setServiceImpact("none");
   };
 
   const handleDelete = (id: string) => {
@@ -72,6 +75,7 @@ export default function PaymentEditor({
     setNotes("");
     setReferenceCode("");
     setType("daily-charge");
+    setServiceImpact("none");
   };
 
 
@@ -102,16 +106,25 @@ export default function PaymentEditor({
     }
   };
 
-  const formatAmountLabel = (payment: { amount: number; type: PaymentType }) => {
+  const formatAmountLabel = (payment: Payment) => {
     if (payment.type === "service-day") {
       return "Service day";
     }
     if (payment.type === "emergency") {
       return "Paid day";
     }
+    if (payment.type === "service") {
+      const impact = payment.serviceImpact ?? "deduct";
+      if (impact === "none") {
+        return `KSh ${payment.amount.toLocaleString()} (Ref)`;
+      }
+      if (impact === "add") {
+        return `+KSh ${payment.amount.toLocaleString()} (Owed)`;
+      }
+      return `-KSh ${payment.amount.toLocaleString()} (Deducted)`;
+    }
 
-    const sign = payment.type === "service" ? "-" : "+";
-    return `${sign}KSh ${payment.amount.toLocaleString()}`;
+    return `+KSh ${payment.amount.toLocaleString()}`;
   };
 
   return (
@@ -221,6 +234,55 @@ export default function PaymentEditor({
             </div>
           </div>
 
+          {type === "service" && (
+            <div className="space-y-2 p-3 bg-muted/40 rounded-lg border border-border/60">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Balance Impact</Label>
+                <span className="text-[11px] text-muted-foreground">Does this change what business owes?</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setServiceImpact("none")}
+                  className={`flex flex-col items-start p-2.5 rounded-md border text-left transition-all ${
+                    serviceImpact === "none"
+                      ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
+                      : "border-border/60 hover:bg-muted/60 text-muted-foreground"
+                  }`}
+                >
+                  <span className="text-xs font-semibold">Reference Only</span>
+                  <span className="text-[10px] opacity-80 mt-0.5">±0 (Log expense)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setServiceImpact("add")}
+                  className={`flex flex-col items-start p-2.5 rounded-md border text-left transition-all ${
+                    serviceImpact === "add"
+                      ? "border-blue-500 bg-blue-500/10 text-blue-500 font-medium shadow-sm"
+                      : "border-border/60 hover:bg-muted/60 text-muted-foreground"
+                  }`}
+                >
+                  <span className="text-xs font-semibold">Business Owes Me</span>
+                  <span className="text-[10px] opacity-80 mt-0.5">+ Adds to debt</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setServiceImpact("deduct")}
+                  className={`flex flex-col items-start p-2.5 rounded-md border text-left transition-all ${
+                    serviceImpact === "deduct"
+                      ? "border-orange-500 bg-orange-500/10 text-orange-500 font-medium shadow-sm"
+                      : "border-border/60 hover:bg-muted/60 text-muted-foreground"
+                  }`}
+                >
+                  <span className="text-xs font-semibold">Deduct from Balance</span>
+                  <span className="text-[10px] opacity-80 mt-0.5">- Reduces debt</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-base font-medium">
               Notes & Remarks <span className="text-xs text-muted-foreground font-normal">({type === "service" ? "Service details" : type === "emergency" ? "Emergency reason" : "Optional notes"})</span>
@@ -257,6 +319,15 @@ export default function PaymentEditor({
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold">
                           {formatTypeLabel(payment.type)}
+                          {payment.type === "service" && (
+                            <span className="ml-1.5 text-[10px] font-normal px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider">
+                              {(payment.serviceImpact ?? "deduct") === "none"
+                                ? "Ref"
+                                : (payment.serviceImpact ?? "deduct") === "add"
+                                ? "+Owed"
+                                : "-Deduct"}
+                            </span>
+                          )}
                         </p>
                         <span className="text-xs font-bold text-primary">
                           {formatAmountLabel(payment)}

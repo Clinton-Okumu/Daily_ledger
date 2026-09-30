@@ -443,7 +443,12 @@ export default function ReportsView({ ledger, onClose }: ReportsViewProps) {
                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                             {item.payments.map((p) => (
                               <span key={p.id} className="bg-muted px-2 py-0.5 rounded-md font-mono text-[11px]">
-                                {p.type === "service" ? "Service" : p.type === "daily-charge" ? "Charge" : p.type}: KSh {p.amount.toLocaleString()}
+                                {p.type === "service"
+                                  ? `Service (${(p.serviceImpact ?? "deduct") === "none" ? "Ref" : (p.serviceImpact ?? "deduct") === "add" ? "+Owed" : "-Deduct"})`
+                                  : p.type === "daily-charge"
+                                  ? "Charge"
+                                  : p.type}
+                                : KSh {p.amount.toLocaleString()}
                                 {p.referenceCode && ` • Ref: ${p.referenceCode}`}
                               </span>
                             ))}

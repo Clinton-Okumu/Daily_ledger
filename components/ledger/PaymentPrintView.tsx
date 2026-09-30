@@ -2,7 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { LedgerState } from "@/types/ledger";
-import { balance, dailyIncome, totalPaidYtd, totalServiceYtd, totalCharged } from "@/lib/ledger";
+import {
+  balance,
+  dailyIncome,
+  totalPaidYtd,
+  totalServiceYtd,
+  totalCharged,
+  serviceDeductionInRange,
+  serviceAdditionInRange,
+} from "@/lib/ledger";
 import { formatDate, parseDate } from "@/lib/date";
 import { Printer, X, CheckCircle, Clock, Wallet, FileText, Briefcase, AlertTriangle } from "lucide-react";
 import { getDayStatus } from "@/lib/status";
@@ -26,7 +34,11 @@ export default function PaymentPrintView({
   const paid = totalPaidYtd(ledger, today);
   const service = totalServiceYtd(ledger, today);
   const charged = totalCharged(ledger, today);
-  const amountDue = Math.max(0, charged - paid - service);
+  const startOfYear = parseDate(`${parseDate(today).getFullYear()}-01-01`);
+  const todayDate = parseDate(today);
+  const deductions = serviceDeductionInRange(ledger, startOfYear, todayDate);
+  const additions = serviceAdditionInRange(ledger, startOfYear, todayDate);
+  const amountDue = Math.max(0, charged + additions - paid - deductions);
 
   const sortedPayments = [...ledger.payments].sort(
     (a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()
@@ -353,15 +365,41 @@ export default function PaymentPrintView({
 
 
                                   <div className="text-right">
-                                     {isPaidDayOverride ? (
-                                       <p className={`font-bold text-lg ${isEmergencyDay ? "text-amber-600" : "text-sky-600"}`}>
-                                         {isEmergencyDay ? "Emergency Day" : "Service Day"}
-                                       </p>
-                                     ) : (
-                                       <p className={`font-bold text-lg ${isServicePayment ? "text-orange-600" : "text-green-600"}`}>
-                                         {isServicePayment ? "-" : "+"}KSh {payment.amount.toLocaleString()}
-                                       </p>
-                                     )}
+                                    {isPaidDayOverride ? (
+                                      <p className={`font-bold text-lg ${isEmergencyDay ? "text-amber-600" : "text-sky-600"}`}>
+                                        {isEmergencyDay ? "Emergency Day" : "Service Day"}
+                                      </p>
+                                    ) : isServicePayment ? (
+                                      <div>
+                                        <p
+                                          className={`font-bold text-lg ${
+                                            (payment.serviceImpact ?? "deduct") === "none"
+                                              ? "text-muted-foreground"
+                                              : (payment.serviceImpact ?? "deduct") === "add"
+                                              ? "text-blue-600"
+                                              : "text-orange-600"
+                                          }`}
+                                        >
+                                          {(payment.serviceImpact ?? "deduct") === "none"
+                                            ? ""
+                                            : (payment.serviceImpact ?? "deduct") === "add"
+                                            ? "+"
+                                            : "-"}
+                                          KSh {payment.amount.toLocaleString()}
+                                        </p>
+                                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                                          {(payment.serviceImpact ?? "deduct") === "none"
+                                            ? "Reference"
+                                            : (payment.serviceImpact ?? "deduct") === "add"
+                                            ? "Owed by Biz"
+                                            : "Deduction"}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <p className="font-bold text-lg text-green-600">
+                                        +KSh {payment.amount.toLocaleString()}
+                                      </p>
+                                    )}
                                      {isEmergencyDay && (
                                        <p className="text-sm text-muted-foreground">
                                          +KSh {dailyIncome(ledger, payment.date).toLocaleString()}
